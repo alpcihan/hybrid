@@ -2,6 +2,7 @@
 
 #include "hybrid/application.hpp"
 #include "hybrid/renderer.hpp"
+#include "hybrid/timer.hpp"
 
 namespace hybrid {
 
@@ -16,10 +17,15 @@ Application::Application() : m_tgai() {
 
 void Application::run() {
     
-    m_tgai.setWindowTitle(*m_window, "Hybrid");
+    m_tgai.setWindowTitle(*m_window, "hybrid");
 
     std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(*m_window); 
+
+    Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
+        m_deltaTime = timer.elapsed();
+        timer.reset();
+        
         renderer->renderFrame();
     }
 }
