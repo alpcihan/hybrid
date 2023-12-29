@@ -1,12 +1,21 @@
 #version 450
 
+//--------------------------------------------------------------------------------------
+// inputs 
+//--------------------------------------------------------------------------------------
 layout(location = 0) in FragData{
     vec3 color;
-}fragData;
+} frag;
 
-layout(location = 0) out vec4 color;
+//--------------------------------------------------------------------------------------
+// outputs
+//--------------------------------------------------------------------------------------
+layout(location = 0) out vec4 gbuffer0;
+layout(location = 1) out vec4 gbuffer1;
+layout(location = 2) out vec4 gbuffer2;
 
-void main()
-{
-    color = vec4(fragData.color,1);
+void main() {
+    gbuffer0 = vec4(frag.color,1);
+    gbuffer1 = vec4(1,0,0,1);
+    gbuffer2 = vec4(0,1,0,1);
 }

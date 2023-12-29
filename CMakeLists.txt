@@ -23,12 +23,18 @@ add_subdirectory(external/TGA)
 add_subdirectory(shaders)
 
 # lib
+configure_file(./include/hybrid/path.hpp.in include/hybrid/path.hpp)
+
 set(HYBRID_LIB_NAME ${CMAKE_PROJECT_NAME}_lib)
 
 file(GLOB_RECURSE HYBRID_SOURCE_FILES "./src/*.cpp")
 add_library(${HYBRID_LIB_NAME} ${HYBRID_SOURCE_FILES})
 
-target_include_directories(${HYBRID_LIB_NAME} PUBLIC "./include")
+target_include_directories(${HYBRID_LIB_NAME} 
+    PUBLIC 
+        ./include
+        ${CMAKE_CURRENT_BINARY_DIR}/include
+)
 target_link_libraries(${HYBRID_LIB_NAME} PUBLIC tga_vulkan tga_utils ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(${HYBRID_LIB_NAME} hybrid_shaders)
 
