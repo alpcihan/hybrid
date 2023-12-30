@@ -27,9 +27,9 @@ private:
     std::vector<tga::Texture> m_gBuffer;
 
     // uniform buffer
-    tga::Buffer m_uniformBuffer;
-    tga::StagingBuffer m_uniformDataStage;
     UniformData* m_uniformData;
+    tga::StagingBuffer m_uniformDataStage;
+    tga::Buffer m_uniformBuffer;
 
     // passes
     tga::RenderPass m_geometryPass;

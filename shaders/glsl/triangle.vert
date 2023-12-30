@@ -33,7 +33,7 @@ layout(location = 0) out Frag {
 void main() {
     vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], -3);
 
-    gl_Position = u_projection * vec4(worldPos, 1.0);
+    gl_Position = u_projection * u_view * vec4(worldPos, 1.0);
     
     frag.color = colors[gl_VertexIndex];
 }

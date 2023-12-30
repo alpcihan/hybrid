@@ -2,6 +2,7 @@
 
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/camera.hpp"
+#include "hybrid/camera_controller.hpp"
 
 namespace hybrid {
 
@@ -11,7 +12,10 @@ public:
     ~Application() = default;
 
     void run();
+
     tga::Interface& getInterface() { return m_tgai; }
+    tga::Window getWindow() { return *m_window; }
+
     std::pair<uint32_t, uint32_t> getScreenResolution() const { return m_screenResolution; }
     float getDeltaTime() const { return m_deltaTime; }
 
@@ -24,6 +28,7 @@ private:
     std::pair<uint32_t, uint32_t> m_screenResolution;
     
     std::unique_ptr<Camera> m_camera;
+    std::unique_ptr<CameraController> m_cameraController;
 
     float m_deltaTime = 0;
 

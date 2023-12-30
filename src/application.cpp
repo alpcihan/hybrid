@@ -17,6 +17,7 @@ Application::Application() : m_tgai() {
 
     // camera
     m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first)/m_screenResolution.second);
+    m_cameraController = std::make_unique<CameraController>(*m_camera);
 }
 
 void Application::run() {
@@ -30,6 +31,7 @@ void Application::run() {
         m_deltaTime = timer.elapsed();
         timer.reset();
         
+        m_cameraController->update(m_deltaTime);
         renderer->renderFrame(*m_camera);
     }
 }
