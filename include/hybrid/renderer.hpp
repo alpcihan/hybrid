@@ -18,6 +18,8 @@ private:
     };
 
 private:
+    tga::Interface& m_tgai;
+
     tga::Window m_window;
     tga::CommandBuffer m_cmd;
 
@@ -38,6 +40,11 @@ private:
     std::vector<tga::InputSet> m_geometryPassInputSets;
     std::vector<tga::InputSet> m_customGeometryPassInputSets;
     std::vector<tga::InputSet> m_lightingPassInputSets;
+
+private:
+    void _init();
+    void _initBuffers();
+    void _initPasses();
 };
 
 }  // namespace hybrid
