@@ -1,14 +1,14 @@
-#include "hybrid/renderer.hpp"
+#include "hybrid/hybrid_render_pipeline.hpp"
 
 #include "hybrid/application.hpp"
 
 namespace hybrid {
 
-Renderer::Renderer(tga::Window& window) : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window) : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()) {
     _init();
 }
 
-void Renderer::renderFrame(const Camera& camera) {
+void HybridRenderPipeline::render(const Camera& camera) {
     // update uniform data
     m_uniformData->projection = camera.getProjection();
     m_uniformData->view = camera.getView();
@@ -41,12 +41,12 @@ void Renderer::renderFrame(const Camera& camera) {
     m_tgai.present(m_window, nextFrame);
 }
 
-void Renderer::_init() {
+void HybridRenderPipeline::_init() {
     _initBuffers();
     _initPasses();
 }
 
-void Renderer::_initBuffers() {
+void HybridRenderPipeline::_initBuffers() {
     const auto [resX, resY] = Application::get().getScreenResolution();
 
     // init gbuffer
@@ -60,7 +60,7 @@ void Renderer::_initBuffers() {
     m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData), m_uniformDataStage});
 }
 
-void Renderer::_initPasses() {
+void HybridRenderPipeline::_initPasses() {
     // 0 - geometry pass
     {
         // shaders

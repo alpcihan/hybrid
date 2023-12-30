@@ -5,11 +5,11 @@
 
 namespace hybrid {
 
-class Renderer {
+class HybridRenderPipeline {
 public:
-    Renderer(tga::Window& window);
+    HybridRenderPipeline(tga::Window& window);
 
-    void renderFrame(const Camera& camera);
+    void render(const Camera& camera);
 
 private:
     struct UniformData {

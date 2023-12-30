@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hybrid/application.hpp"
-#include "hybrid/renderer.hpp"
+#include "hybrid/hybrid_render_pipeline.hpp"
 #include "hybrid/timer.hpp"
 #include "hybrid/perspective_camera.hpp"
 
@@ -24,7 +24,7 @@ void Application::run() {
     
     m_tgai.setWindowTitle(*m_window, "hybrid");
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(*m_window); 
+    std::unique_ptr<HybridRenderPipeline> renderer = std::make_unique<HybridRenderPipeline>(*m_window); 
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
@@ -32,7 +32,7 @@ void Application::run() {
         timer.reset();
         
         m_cameraController->update(m_deltaTime);
-        renderer->renderFrame(*m_camera);
+        renderer->render(*m_camera);
     }
 }
 
