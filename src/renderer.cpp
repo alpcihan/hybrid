@@ -23,6 +23,9 @@ void Renderer::renderFrame(const Camera& camera) {
                 .draw(3, 0)
 
                 // 2 - custom geometry pass
+                .setRenderPass(m_customGeometryPass, 0)
+                .bindInputSet(m_customGeometryPassInputSets[0])
+                .draw(3, 0)
 
                 // 3 - lighting pass
                 .setRenderPass(m_lightingPass, nextFrame)
@@ -64,7 +67,7 @@ void Renderer::_initPasses() {
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("triangle_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
-        // input layout
+        // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
             // S0
             tga::BindingType::uniformBuffer  // B0: uniform buffer
@@ -87,24 +90,50 @@ void Renderer::_initPasses() {
                                    },
                                    0}),
         };
+
+        // free
+        m_tgai.free(vs);
+        m_tgai.free(fs);
     }
 
-    // 1 - custom geometry pass
+    // 1 - custom geometry pass (TODO: set at client side)
     {
-        // shaders
+        // shaders (TODO: reuse)
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("ray_march_test_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
-        // input layout
+        // input layout (TODO: reuse)
+        tga::InputLayout inputLayout({{{
+            // S0
+            tga::BindingType::uniformBuffer  // B0: uniform buffer
+        }}});
 
         // pass
+        m_customGeometryPass =
+            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs}
+                                        .setPerPixelOperations(tga::CompareOperation::less)
+                                        .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
+                                        .setInputLayout(inputLayout)
+                                        .setRenderTarget(m_gBuffer));
 
         // input sets
+        m_customGeometryPassInputSets = {
+            m_tgai.createInputSet({m_customGeometryPass,
+                                   {
+                                       {m_uniformBuffer, 0},
+                                   },
+                                   0}),
+        };
+
+        // free
+        m_tgai.free(vs);
+        m_tgai.free(fs);
     }
 
     // 2 - lighting pass
     {
         // shader
-        tga::Shader vs =
-            tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("lighting_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout
@@ -123,7 +152,10 @@ void Renderer::_initPasses() {
 
         // pass
         m_lightingPass = m_tgai.createRenderPass(
-            tga::RenderPassInfo{vs, fs, m_window}.setInputLayout(inputLayout).setRenderTarget(m_window));
+            tga::RenderPassInfo{vs, fs, m_window}
+            .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
+            .setInputLayout(inputLayout)
+            .setRenderTarget(m_window));
 
         // input sets
         m_lightingPassInputSets = {
@@ -141,6 +173,10 @@ void Renderer::_initPasses() {
                                    1}),
 
         };
+
+        // free
+        m_tgai.free(vs);
+        m_tgai.free(fs);
     }
 }
 

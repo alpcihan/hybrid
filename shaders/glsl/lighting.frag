@@ -26,11 +26,14 @@ layout (location = 0) in vec2 uv;
 //--------------------------------------------------------------------------------------
 layout (location = 0) out vec4 fragOut;
 
+//--------------------------------------------------------------------------------------
+// program
+//--------------------------------------------------------------------------------------
 void main()  {
     // read g-buffer
-    vec4 diffuse   = texture(gbuffer0,uv);
-    vec4 position  = texture(gbuffer1,uv);
-    vec4 normal    = texture(gbuffer2,uv);
+    vec4 diffuse   = texture(gbuffer0, uv);
+    vec4 position  = texture(gbuffer1, uv);
+    vec4 normal    = texture(gbuffer2, uv);
 
     // output
     fragOut = diffuse;

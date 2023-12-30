@@ -15,7 +15,6 @@ public:
 
     tga::Interface& getInterface() { return m_tgai; }
     tga::Window getWindow() { return *m_window; }
-
     std::pair<uint32_t, uint32_t> getScreenResolution() const { return m_screenResolution; }
     float getDeltaTime() const { return m_deltaTime; }
 
@@ -24,12 +23,16 @@ public:
 
 private:
     tga::Interface m_tgai;
+
+    // window
     std::unique_ptr<tga::Window> m_window;
     std::pair<uint32_t, uint32_t> m_screenResolution;
     
+    // camera
     std::unique_ptr<Camera> m_camera;
     std::unique_ptr<CameraController> m_cameraController;
 
+    // time
     float m_deltaTime = 0;
 
 private:
