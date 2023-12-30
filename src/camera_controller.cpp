@@ -10,7 +10,7 @@ static const glm::vec3 WORLD_UP_VECTOR(0, -1, 0);
 static const glm::vec3 WORLD_FRONT_VECTOR(0, 0, -1);
 static const glm::vec3 WORLD_RIGHT_VECTOR(1, 0, 0);
 
-CameraController::CameraController(Camera& camera) : m_camera(camera), m_yaw(0), m_pitch(0), m_position(0,0,10) {}
+CameraController::CameraController(Camera& camera) : m_camera(camera), m_yaw(0), m_pitch(0), m_position(0,0,3) {}
 
 void CameraController::update(float deltaTime) {
     auto& tgai = Application::get().getInterface();

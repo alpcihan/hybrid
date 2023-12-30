@@ -28,7 +28,7 @@ void Application::run() {
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
-        std::cout << 1 / m_deltaTime << "\n";
+        std::cout << std::format("FPS: {0}\n", 1 / m_deltaTime);
         m_deltaTime = timer.elapsed();
         timer.reset();
         

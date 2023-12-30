@@ -28,5 +28,5 @@ void main()  {
     // output
     gl_FragDepth = 0.99999;
 
-    gbuffer0.z = uv.x;
+    gbuffer0.xy = uv.xy;
 }
