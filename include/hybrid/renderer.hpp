@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hybrid/hybrid_shared.hpp"
+#include "hybrid/camera.hpp"
 
 namespace hybrid {
 
@@ -8,7 +9,13 @@ class Renderer {
 public:
     Renderer(tga::Window& window);
 
-    void renderFrame();
+    void renderFrame(const Camera& camera);
+
+private:
+    struct UniformData {
+        alignas(16) glm::mat4 projection;
+        alignas(16) glm::mat4 view;
+    };
 
 private:
     tga::Window m_window;
@@ -16,6 +23,11 @@ private:
 
     // gbuffer
     std::vector<tga::Texture> m_gBuffer;
+
+    // uniform buffer
+    tga::Buffer m_uniformBuffer;
+    tga::StagingBuffer m_uniformDataStage;
+    UniformData* m_uniformData;
 
     // passes
     tga::RenderPass m_geometryPass;

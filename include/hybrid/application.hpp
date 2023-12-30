@@ -1,6 +1,7 @@
 #pragma once
 
-#include "hybrid_shared.hpp"
+#include "hybrid/hybrid_shared.hpp"
+#include "hybrid/camera.hpp"
 
 namespace hybrid {
 
@@ -21,6 +22,9 @@ private:
     tga::Interface m_tgai;
     std::unique_ptr<tga::Window> m_window;
     std::pair<uint32_t, uint32_t> m_screenResolution;
+    
+    std::unique_ptr<Camera> m_camera;
+
     float m_deltaTime = 0;
 
 private:

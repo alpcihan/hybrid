@@ -1,6 +1,14 @@
 #version 450
 
 //--------------------------------------------------------------------------------------
+// uniform buffer
+//--------------------------------------------------------------------------------------
+layout(set = 0, binding = 0) uniform UniformData {
+    mat4 u_projection;
+    mat4 u_view;
+};
+
+//--------------------------------------------------------------------------------------
 // triangle data
 //--------------------------------------------------------------------------------------
 vec3[3] colors = vec3[](
@@ -23,7 +31,9 @@ layout(location = 0) out Frag {
 } frag;
 
 void main() {
-    gl_Position = vec4(positions[gl_VertexIndex % positions.length()], 0.0, 1.0);
+    vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], -3);
+
+    gl_Position = u_projection * vec4(worldPos, 1.0);
     
     frag.color = colors[gl_VertexIndex];
 }

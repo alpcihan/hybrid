@@ -2,11 +2,19 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 //--------------------------------------------------------------------------------------
+// uniform buffer
+//--------------------------------------------------------------------------------------
+layout(set = 0, binding = 0) uniform UniformData {
+    mat4 u_projection;
+    mat4 u_view;
+};
+
+//--------------------------------------------------------------------------------------
 // g-buffer (read)
 //--------------------------------------------------------------------------------------
-layout(set = 0, binding = 0) uniform sampler2D gbuffer0;
-layout(set = 0, binding = 1) uniform sampler2D gbuffer1;
-layout(set = 0, binding = 2) uniform sampler2D gbuffer2;
+layout(set = 1, binding = 0) uniform sampler2D gbuffer0;
+layout(set = 1, binding = 1) uniform sampler2D gbuffer1;
+layout(set = 1, binding = 2) uniform sampler2D gbuffer2;
 
 //--------------------------------------------------------------------------------------
 // inputs 

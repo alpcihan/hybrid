@@ -3,6 +3,7 @@
 #include "hybrid/application.hpp"
 #include "hybrid/renderer.hpp"
 #include "hybrid/timer.hpp"
+#include "hybrid/perspective_camera.hpp"
 
 namespace hybrid {
 
@@ -13,6 +14,9 @@ Application::Application() : m_tgai() {
     // window
     m_screenResolution = std::pair<uint32_t, uint32_t>(640, 360);
     m_window = std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
+
+    // camera
+    m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first)/m_screenResolution.second);
 }
 
 void Application::run() {
@@ -26,7 +30,7 @@ void Application::run() {
         m_deltaTime = timer.elapsed();
         timer.reset();
         
-        renderer->renderFrame();
+        renderer->renderFrame(*m_camera);
     }
 }
 
