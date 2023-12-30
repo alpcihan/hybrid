@@ -28,6 +28,7 @@ void Application::run() {
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
+        std::cout << 1 / m_deltaTime << "\n";
         m_deltaTime = timer.elapsed();
         timer.reset();
         
