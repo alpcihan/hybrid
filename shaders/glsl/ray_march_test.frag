@@ -15,6 +15,7 @@ struct Ray {
 layout(set = 0, binding = 0) uniform UniformData {
     mat4 u_projection;
     mat4 u_view;
+    vec4 u_zBufferParams;
 };
 
 //--------------------------------------------------------------------------------------

@@ -9,9 +9,7 @@ HybridRenderPipeline::HybridRenderPipeline(tga::Window& window) : m_window(windo
 }
 
 void HybridRenderPipeline::render(const Camera& camera) {
-    // update uniform data
-    m_uniformData->projection = camera.getProjection();
-    m_uniformData->view = camera.getView();
+    _updateUniformData(camera);
 
     auto nextFrame = m_tgai.nextFrame(m_window);
     m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  // 0 - buffer update
@@ -178,6 +176,16 @@ void HybridRenderPipeline::_initPasses() {
         m_tgai.free(vs);
         m_tgai.free(fs);
     }
+}
+
+void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
+    // update uniform data
+    m_uniformData->projection = camera.getProjection();
+    m_uniformData->view = camera.getView();
+    m_uniformData->zBufferParams[0] = 1 - camera.getFarPlane() / camera.getNearPlane();
+    m_uniformData->zBufferParams[1] = camera.getFarPlane() / camera.getNearPlane();
+    m_uniformData->zBufferParams[2] = m_uniformData -> zBufferParams[0] / camera.getFarPlane();
+    m_uniformData->zBufferParams[3] = m_uniformData -> zBufferParams[1] / camera.getFarPlane();
 }
 
 }  // namespace hybrid

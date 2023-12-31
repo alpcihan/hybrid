@@ -15,6 +15,7 @@ private:
     struct UniformData {
         alignas(16) glm::mat4 projection;
         alignas(16) glm::mat4 view;
+        alignas(16) glm::vec4 zBufferParams;
     };
 
 private:
@@ -45,6 +46,7 @@ private:
     void _init();
     void _initBuffers();
     void _initPasses();
+    void _updateUniformData(const Camera& camera);
 };
 
 }  // namespace hybrid
