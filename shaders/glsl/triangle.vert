@@ -28,6 +28,7 @@ vec2 positions[3] = vec2[](
 //--------------------------------------------------------------------------------------
 layout(location = 0) out Frag {
     vec3 color;
+    vec3 normalWorld;
 } frag;
 
 //--------------------------------------------------------------------------------------
@@ -35,9 +36,10 @@ layout(location = 0) out Frag {
 //--------------------------------------------------------------------------------------
 void main() {
     vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0);
+    vec3 worldNormal = vec3(0, 0, 1);
 
-    gl_Position = vec4(worldPos, 1.0);
     gl_Position = u_projection * u_view * vec4(worldPos, 1.0);
     
     frag.color = colors[gl_VertexIndex];
+    frag.normalWorld = worldNormal;
 }

@@ -59,7 +59,7 @@ float distance_from_sphere(in vec3 p, in vec3 c, float r)
 	return length(p - c) - r;
 }
 
-vec3 ray_march(in vec3 ro, in vec3 rd)
+bool ray_march(in vec3 ro, in vec3 rd, out vec3 color, out vec3 normalWorld)
 {
     float total_distance_traveled = 0.0;
     const int NUMBER_OF_STEPS = 32;
@@ -80,7 +80,9 @@ vec3 ray_march(in vec3 ro, in vec3 rd)
         if (distance_to_closest < MINIMUM_HIT_DISTANCE) // hit
         {
             // We hit something! Return normal color for now
-            return (normalize(current_position - sphere_center)) * 0.5 + 0.5;
+            color = vec3(0.8,0.2,0.8);
+            normalWorld = normalize(current_position - sphere_center);
+            return true;
         }
 
         if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE) // miss
@@ -92,18 +94,23 @@ vec3 ray_march(in vec3 ro, in vec3 rd)
         total_distance_traveled += distance_to_closest;
     }
 
-    // If we get here, we didn't hit anything so just
-    // return a background color (black)
-    return vec3(0.0);
+    return false;
 }
 
 void main()  {
-    // output
-    gl_FragDepth = 0.99999;
-
     Ray ray = createCameraRay(uv * 2 - 1, inverse(u_projection), inverse(u_view));
     
-    vec3 color = ray_march(ray.origin, ray.direction);
+    vec3 color;
+    vec3 normalWorld;
+    bool isHit = ray_march(ray.origin, ray.direction, color, normalWorld);
 
+    if(!isHit) {
+      gl_FragDepth = 1;
+      return;
+    } 
+
+    // output
+    gl_FragDepth = 0.99999;
     gbuffer0.xyz = color;
+    gbuffer2.xyz = normalWorld;
 }

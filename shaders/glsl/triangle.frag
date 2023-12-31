@@ -5,13 +5,14 @@
 //--------------------------------------------------------------------------------------
 layout(location = 0) in FragData{
     vec3 color;
+    vec3 normalWorld;
 } frag;
 
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
 layout(location = 0) out vec4 gbuffer0; // xyz: diffuse color, w: -
-layout(location = 1) out vec4 gbuffer1; // xyzw: -
+layout(location = 1) out vec4 gbuffer1; // xyz: world normal,  w: -
 layout(location = 2) out vec4 gbuffer2; // xyzw: -
 
 //--------------------------------------------------------------------------------------
@@ -19,6 +20,6 @@ layout(location = 2) out vec4 gbuffer2; // xyzw: -
 //--------------------------------------------------------------------------------------
 void main() {
     gbuffer0 = vec4(frag.color,1);
-    gbuffer1 = vec4(1,0,0,1);
-    gbuffer2 = vec4(0,1,0,1);
+    gbuffer1 = vec4(0,1,0,1);
+    gbuffer2 = vec4(frag.normalWorld,1);
 }
