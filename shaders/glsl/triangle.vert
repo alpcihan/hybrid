@@ -34,7 +34,7 @@ layout(location = 0) out Frag {
 // program
 //--------------------------------------------------------------------------------------
 void main() {
-    vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0.1);
+    vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0);
 
     gl_Position = vec4(worldPos, 1.0);
     gl_Position = u_projection * u_view * vec4(worldPos, 1.0);
