@@ -18,10 +18,9 @@ public:
 protected:
     glm::mat4 m_projection = glm::mat4(1);
     glm::mat4 m_view = glm::mat4(1);
+    float m_aspectRatio;
     float m_nearPlane;
     float m_farPlane;
-    float m_fov;
-    float m_aspectRatio;
 
 friend class CameraController;
 };
