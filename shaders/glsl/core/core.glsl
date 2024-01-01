@@ -30,13 +30,15 @@ layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 // utils
 //--------------------------------------------------------------------------------------
 
-// linear to z buffer depth
-float LinearToZDepth(float depth, in vec3 direction)
-{
-    vec3 eyeForward = vec3(0.,0.,-1.) * mat3(_view);
-    float eyeZ = -depth * dot(direction, eyeForward);
-    
-    return _projection[2].z + _projection[3].z / eyeZ;
+// depth to eye z distance
+float depthToEyeZ(float depth, in vec3 direction) {
+    const vec3 eyeForward = vec3(0.,0.,-1.) * mat3(_view);
+    return depth * dot(direction, eyeForward);
+}
+
+// linear depth to z buffer depth
+float linearToZDepth(float z) {
+    return (1.0 / z - _zBufferParams.w) / _zBufferParams.z;
 }
 
 #endif

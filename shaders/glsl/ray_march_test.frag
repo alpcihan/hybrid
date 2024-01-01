@@ -70,7 +70,8 @@ void main()  {
       return;
     } 
 
-    gl_FragDepth = LinearToZDepth(depth, ray.direction);
+    // output
+    gl_FragDepth = linearToZDepth(distanceToEyeZ(depth, ray.direction));
     gbuffer0.xyz = vec3(0.7,0.2,0.2);
     gbuffer1.xyz = positionWorld;
     gbuffer2.xyz = normalWorld;
