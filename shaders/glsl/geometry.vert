@@ -24,7 +24,8 @@ vec2 positions[3] = vec2[](
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
-layout(location = 0) out Frag {
+layout(location = 0) out FragData {
+    vec3 positionWorld;
     vec3 normalWorld;
 } frag;
 
@@ -32,10 +33,11 @@ layout(location = 0) out Frag {
 // program
 //--------------------------------------------------------------------------------------
 void main() {
-    vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0);
-    vec3 worldNormal = vec3(0, 0, 1);
+    const vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0);
+    const vec3 worldNormal = vec3(0, 0, 1);
 
     gl_Position = _projection * _view * vec4(worldPos, 1.0);
     
+    frag.positionWorld = worldPos;
     frag.normalWorld = worldNormal;
 }

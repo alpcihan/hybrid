@@ -29,7 +29,7 @@ float dist_sphere(in vec3 p, in vec3 c, float r)
 	return length(p - c) - r;
 }
 
-float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 normal) {
+float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 position, out vec3 normal) {
     
     normal = vec3(0,0,0);
     float depth = start;
@@ -43,7 +43,7 @@ float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 no
         float dist = dist_sphere( current_pos, sphere_center, sphere_radius );
 
         if ( dist < march_stop_threshold ) {
-
+            position = current_pos;
             normal = normalize(current_pos - sphere_center);
 
             return depth;
@@ -61,8 +61,9 @@ float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 no
 void main()  {
     Ray ray = createCameraRay(uv*2-1, inverse(_projection), inverse(_view));
     
-    vec3 normal;
-    float depth = ray_march(ray.origin, ray.direction,  _projectionParams[0], _projectionParams[1], normal);
+    vec3 positionWorld;
+    vec3 normalWorld;
+    float depth = ray_march(ray.origin, ray.direction,  _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
 
     if(depth >= _projectionParams[1]) {
       gl_FragDepth = 1;
@@ -71,5 +72,6 @@ void main()  {
 
     gl_FragDepth = LinearToZDepth(depth, ray.direction);
     gbuffer0.xyz = vec3(0.7,0.2,0.2);
-    gbuffer2.xyz = normal;
+    gbuffer1.xyz = positionWorld;
+    gbuffer2.xyz = normalWorld;
 }
