@@ -16,6 +16,7 @@ private:
         alignas(16) glm::mat4 projection;
         alignas(16) glm::mat4 view;
         alignas(16) glm::vec4 zBufferParams;
+        alignas(16) glm::vec4 projectionParams;
     };
 
 private:

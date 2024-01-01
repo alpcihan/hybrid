@@ -1,13 +1,10 @@
 #version 450
+#extension GL_GOOGLE_include_directive : enable
 
 //--------------------------------------------------------------------------------------
-// uniform buffer
+// includes
 //--------------------------------------------------------------------------------------
-layout(set = 0, binding = 0) uniform UniformData {
-    mat4 u_projection;
-    mat4 u_view;
-    vec4 u_zBufferParams;
-};
+#include "core/core.glsl"
 
 //--------------------------------------------------------------------------------------
 // triangle data
@@ -28,7 +25,6 @@ vec2 positions[3] = vec2[](
 // outputs
 //--------------------------------------------------------------------------------------
 layout(location = 0) out Frag {
-    vec3 color;
     vec3 normalWorld;
 } frag;
 
@@ -39,8 +35,7 @@ void main() {
     vec3 worldPos = vec3(positions[gl_VertexIndex % positions.length()], 0);
     vec3 worldNormal = vec3(0, 0, 1);
 
-    gl_Position = u_projection * u_view * vec4(worldPos, 1.0);
+    gl_Position = _projection * _view * vec4(worldPos, 1.0);
     
-    frag.color = colors[gl_VertexIndex];
     frag.normalWorld = worldNormal;
 }

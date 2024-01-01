@@ -1,20 +1,17 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive : enable
 
 //--------------------------------------------------------------------------------------
-// uniform buffer
+// includes
 //--------------------------------------------------------------------------------------
-layout(set = 0, binding = 0) uniform UniformData {
-    mat4 u_projection;
-    mat4 u_view;
-};
+#include "core/core.glsl"
+#include "core/ray.glsl"
 
 //--------------------------------------------------------------------------------------
 // g-buffer (read)
 //--------------------------------------------------------------------------------------
-layout(set = 1, binding = 0) uniform sampler2D gbuffer0;
-layout(set = 1, binding = 1) uniform sampler2D gbuffer1;
-layout(set = 1, binding = 2) uniform sampler2D gbuffer2;
+HYBRID_CORE_GBUFFER_SAMPLER
 
 //--------------------------------------------------------------------------------------
 // inputs 

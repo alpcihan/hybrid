@@ -62,8 +62,8 @@ void HybridRenderPipeline::_initPasses() {
     // 0 - geometry pass
     {
         // shaders
-        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
-        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("triangle_frag.spv"), tga::ShaderType::fragment, m_tgai);
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("geometry_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("geometry_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
@@ -186,6 +186,10 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
     m_uniformData->zBufferParams[1] = camera.getFarPlane() / camera.getNearPlane();
     m_uniformData->zBufferParams[2] = m_uniformData -> zBufferParams[0] / camera.getFarPlane();
     m_uniformData->zBufferParams[3] = m_uniformData -> zBufferParams[1] / camera.getFarPlane();
+    m_uniformData->projectionParams[0] = camera.getNearPlane();
+    m_uniformData->projectionParams[1] = camera.getFarPlane();
+    m_uniformData->projectionParams[2] = 0; // unused
+    m_uniformData->projectionParams[3] = 0; // unused
 }
 
 }  // namespace hybrid

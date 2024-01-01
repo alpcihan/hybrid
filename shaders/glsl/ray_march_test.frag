@@ -1,22 +1,12 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive : enable
 
 //--------------------------------------------------------------------------------------
-// structs
+// includes
 //--------------------------------------------------------------------------------------
-struct Ray {
-    vec3 origin;
-    vec3 direction;
-};
-
-//--------------------------------------------------------------------------------------
-// uniform buffer
-//--------------------------------------------------------------------------------------
-layout(set = 0, binding = 0) uniform UniformData {
-    mat4 u_projection;
-    mat4 u_view;
-    vec4 u_zBufferParams;
-};
+#include "core/core.glsl"
+#include "core/ray.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs 
@@ -26,92 +16,60 @@ layout (location = 0) in vec2 uv;
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
-layout(location = 0) out vec4 gbuffer0; // xyz: diffuse color, w: -
-layout(location = 1) out vec4 gbuffer1; // xyzw: -
-layout(location = 2) out vec4 gbuffer2; // xyzw: -
+HYBRID_CORE_GBUFFER_TARGET
 
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
+const int max_iterations = 255;
+const float march_stop_threshold = 0.001;
 
-Ray createRay(vec3 origin, vec3 direction) {
-    Ray ray;
-    ray.origin = origin;
-    ray.direction = direction;
-
-    return ray;
-}
-
-Ray createCameraRay(vec2 uv, in mat4 projectionInverse, in mat4 viewInverse) {
-    // camera origin
-    vec3 origin = (viewInverse*vec4(0,0,0,1)).xyz;
-    
-    // invert the perspective projection of the view-space position
-    vec3 direction = (projectionInverse * vec4(uv, 0.0f, 1.0f)).xyz;
-
-    // direction from camera to world space and normalize
-    direction = normalize((viewInverse * vec4(direction, 0.0f)).xyz);
-
-    return createRay(origin, direction);
-}
-
-float distance_from_sphere(in vec3 p, in vec3 c, float r)
+float dist_sphere(in vec3 p, in vec3 c, float r)
 {
 	return length(p - c) - r;
 }
 
-bool ray_march(in vec3 ro, in vec3 rd, out vec3 color, out vec3 normalWorld)
-{
-    float total_distance_traveled = 0.0;
-    const int NUMBER_OF_STEPS = 32;
-    const float MINIMUM_HIT_DISTANCE = 0.001;
-    const float MAXIMUM_TRACE_DISTANCE = 1000.0;
+float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 normal) {
+    
+    normal = vec3(0,0,0);
+    float depth = start;
 
-    for (int i = 0; i < NUMBER_OF_STEPS; ++i)
-    {
-        // Calculate our current position along the ray
-        vec3 current_position = ro + total_distance_traveled * rd;
+    for (int i = 0; i < max_iterations; i++) {
+        vec3 current_pos = origin + dir * depth;
 
-        // We wrote this function earlier in the tutorial -
-        // assume that the sphere is centered at the origin
-        // and has unit radius
-        vec3 sphere_center = vec3(0,0,-1);
-        float distance_to_closest = distance_from_sphere(current_position, sphere_center, 0.5);
+        vec3 sphere_center = vec3(0,0,0);
+        float sphere_radius = 0.2;
 
-        if (distance_to_closest < MINIMUM_HIT_DISTANCE) // hit
-        {
-            // We hit something! Return normal color for now
-            color = vec3(0.8,0.2,0.8);
-            normalWorld = normalize(current_position - sphere_center);
-            return true;
+        float dist = dist_sphere( current_pos, sphere_center, sphere_radius );
+
+        if ( dist < march_stop_threshold ) {
+
+            normal = normalize(current_pos - sphere_center);
+
+            return depth;
         }
 
-        if (total_distance_traveled > MAXIMUM_TRACE_DISTANCE) // miss
-        {
-            break;
+        depth += dist;
+        if ( depth >= end) {
+            return end;
         }
 
-        // accumulate the distance traveled thus far
-        total_distance_traveled += distance_to_closest;
     }
-
-    return false;
+    return end;
 }
 
 void main()  {
-    Ray ray = createCameraRay(uv * 2 - 1, inverse(u_projection), inverse(u_view));
+    Ray ray = createCameraRay(uv*2-1, inverse(_projection), inverse(_view));
     
-    vec3 color;
-    vec3 normalWorld;
-    bool isHit = ray_march(ray.origin, ray.direction, color, normalWorld);
+    vec3 normal;
+    float depth = ray_march(ray.origin, ray.direction,  _projectionParams[0], _projectionParams[1], normal);
 
-    if(!isHit) {
+    if(depth >= _projectionParams[1]) {
       gl_FragDepth = 1;
       return;
     } 
 
-    // output
-    gl_FragDepth = 0.99999;
-    gbuffer0.xyz = color;
-    gbuffer2.xyz = normalWorld;
+    gl_FragDepth = LinearToZDepth(depth, ray.direction);
+    gbuffer0.xyz = vec3(0.7,0.2,0.2);
+    gbuffer2.xyz = normal;
 }
