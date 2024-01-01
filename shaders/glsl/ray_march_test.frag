@@ -63,7 +63,7 @@ void main()  {
     
     vec3 positionWorld;
     vec3 normalWorld;
-    float depth = ray_march(ray.origin, ray.direction,  _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
+    float depth = ray_march(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
 
     if(depth >= _projectionParams[1]) {
       gl_FragDepth = 1;
