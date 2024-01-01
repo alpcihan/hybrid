@@ -6,7 +6,7 @@ else()
 endif(WIN32)
 
 # Compiles all shaders in /glsl folder to SPIR-V
-file(GLOB_RECURSE GLSL_SHADERS CONFIGURE_DEPENDS "glsl/*")
+file(GLOB GLSL_SHADERS CONFIGURE_DEPENDS "glsl/*.*")
 
 foreach(GLSL ${GLSL_SHADERS})
     get_filename_component(FILE_NAME ${GLSL} NAME_WE)

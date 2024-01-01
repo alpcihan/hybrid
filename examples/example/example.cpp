@@ -1,6 +1,8 @@
 #include "hybrid/hybrid.hpp"
 
 int main() {
-    testTriangleApp();
+    hybrid::Application app;
+    hybrid::Application::get().run();
+
     return 0;
 }
