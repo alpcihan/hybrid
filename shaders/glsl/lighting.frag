@@ -29,6 +29,8 @@ const vec3 AMBIENT_LIGHT_COLOR = vec3(1,1,1);
 const float AMBIENT_LIGHT_STRENGTH = 0.1;
 const vec3 LIGHT_POS = vec3(1,1,1); 
 const vec3 LIGHT_COLOR = vec3(1,1,1);
+const float SPECULAR_STRENGTH = 0.75;
+const float SHININESS = 64;
 
 void main()  {
     // read g-buffer
@@ -36,6 +38,7 @@ void main()  {
     const vec3 positionWorld  = texture(gbuffer1, uv).xyz;
     const vec3 normalWorld    = texture(gbuffer2, uv).xyz;
 
+    //--------------------------------------------------------------------------------------
     // shading
     vec3 finalColor = vec3(0);
 
@@ -45,10 +48,19 @@ void main()  {
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * LIGHT_COLOR;
 
+    // specular
+    vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
+    vec3 viewDir = normalize(viewPos - positionWorld);
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), SHININESS);
+    vec3 specular = SPECULAR_STRENGTH * spec * LIGHT_COLOR;  
+
     // ambient
     vec3 ambient = AMBIENT_LIGHT_STRENGTH * AMBIENT_LIGHT_COLOR;
 
-    finalColor = (ambient + diffuse) * diffuseColor;
+    // result
+    finalColor = (ambient + diffuse + specular) * diffuseColor;
+    //--------------------------------------------------------------------------------------
 
     // output
     fragOut = vec4(finalColor, 1);
