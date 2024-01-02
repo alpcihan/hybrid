@@ -54,7 +54,7 @@ struct PointLight {
 const Material material = {1, 64};
 const AmbientLight ambientLight = {vec3(1), 0.0};
 const DirectionalLight directionalLight = {vec3(0), 0.6, vec3(0.2f, 1.0f, 0.3f)};
-const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 0.1, 0.9, 32};
+const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 1, 0.09, 0.032};
 
 void main()  {
     // read g-buffer
