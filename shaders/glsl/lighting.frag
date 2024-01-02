@@ -79,7 +79,8 @@ void main()  {
     const vec3 dl_specular = material.specularStrength * dl_spec * directionalLight.color * directionalLight.strength;  
 
     // diffuse (point light)
-    const vec3 pl_lightToSurface = positionWorld - pointLight.position;
+    vec3 pl_pos = pointLight.position; pl_pos.x += sin(_time*2);
+    const vec3 pl_lightToSurface = positionWorld - pl_pos;
     const float pl_distance = length(pl_lightToSurface);
     const float pl_attenuation = 1.0 / (pointLight.c + pointLight.l * pl_distance + pointLight.q * (pl_distance * pl_distance));
 
