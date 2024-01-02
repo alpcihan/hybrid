@@ -27,7 +27,7 @@ void Application::run() {
     
     m_tgai.setWindowTitle(*m_window, "hybrid");
 
-    std::unique_ptr<HybridRenderPipeline> renderer = std::make_unique<HybridRenderPipeline>(*m_window); 
+    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window); 
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
@@ -40,7 +40,7 @@ void Application::run() {
         }
         
         m_cameraController->update(deltaTime);
-        renderer->render(*m_camera);
+        renderPipeline->render(*m_camera);
     }
 }
 
