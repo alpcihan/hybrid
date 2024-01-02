@@ -25,12 +25,25 @@ layout (location = 0) out vec4 fragOut;
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-const vec3 AMBIENT_LIGHT_COLOR = vec3(1,1,1);
-const float AMBIENT_LIGHT_STRENGTH = 0.1;
-const vec3 LIGHT_POS = vec3(1,1,1); 
-const vec3 LIGHT_COLOR = vec3(1,1,1);
-const float SPECULAR_STRENGTH = 0.75;
-const float SHININESS = 64;
+struct Material {
+    float specularStrenght;
+    float shininess;
+};
+
+struct AmbientLight {
+    vec3 color;
+    float strength;
+};
+
+struct DirectionalLight {
+    vec3 color;
+    float strength;
+    vec3 direction;
+};
+
+const Material material = {0.2, 64};
+const AmbientLight ambientLight = {vec3(1), 0.01};
+const DirectionalLight directionalLight = {vec3(1), 0.6, vec3(0.2f, 1.0f, 0.3f)};
 
 void main()  {
     // read g-buffer
@@ -44,19 +57,19 @@ void main()  {
 
     // diffuse
     vec3 norm = normalWorld;
-    vec3 lightDir = normalize(LIGHT_POS - positionWorld);  
+    vec3 lightDir = directionalLight.direction;  
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * LIGHT_COLOR;
+    vec3 diffuse = diff * directionalLight.color * directionalLight.strength;
 
     // specular
     vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
     vec3 viewDir = normalize(viewPos - positionWorld);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), SHININESS);
-    vec3 specular = SPECULAR_STRENGTH * spec * LIGHT_COLOR;  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = material.specularStrenght * spec * directionalLight.color * directionalLight.strength;  
 
     // ambient
-    vec3 ambient = AMBIENT_LIGHT_STRENGTH * AMBIENT_LIGHT_COLOR;
+    vec3 ambient = ambientLight.strength * ambientLight.color;
 
     // result
     finalColor = (ambient + diffuse + specular) * diffuseColor;
