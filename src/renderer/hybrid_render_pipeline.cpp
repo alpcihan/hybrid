@@ -1,6 +1,6 @@
-#include "hybrid/hybrid_render_pipeline.hpp"
+#include "hybrid/renderer/hybrid_render_pipeline.hpp"
 
-#include "hybrid/application.hpp"
+#include "hybrid/core/application.hpp"
 
 namespace hybrid {
 

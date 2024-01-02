@@ -1,12 +1,14 @@
 #pragma once
 
-#include "hybrid/application.hpp"
-#include "hybrid/hybrid_render_pipeline.hpp"
-#include "hybrid/timer.hpp"
-#include "hybrid/perspective_camera.hpp"
-#include "hybrid/time.hpp"
+#include "hybrid/core/application.hpp"
+#include "hybrid/renderer/hybrid_render_pipeline.hpp"
+#include "hybrid/core/timer.hpp"
+#include "hybrid/renderer/perspective_camera.hpp"
+#include "hybrid/core/time.hpp"
 
 namespace hybrid {
+
+Application *Application::s_instance = nullptr;
 
 Application::Application() : m_tgai() {
     // instance
@@ -39,11 +41,7 @@ void Application::run() {
         
         m_cameraController->update(deltaTime);
         renderer->render(*m_camera);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
-
-Application *Application::s_instance = nullptr;
 
 }  // namespace hybrid

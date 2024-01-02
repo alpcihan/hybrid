@@ -23,7 +23,7 @@ add_subdirectory(external/TGA)
 add_subdirectory(shaders)
 
 # lib
-configure_file(./include/hybrid/path.hpp.in include/hybrid/path.hpp)
+configure_file(./include/hybrid/config/path.hpp.in include/hybrid/config/path.hpp)
 
 set(HYBRID_LIB_NAME ${CMAKE_PROJECT_NAME}_lib)
 

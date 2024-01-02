@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hybrid/application.hpp"
-#include "hybrid/hybrid_render_pipeline.hpp"
+#include "hybrid/core/application.hpp"
+#include "hybrid/core/time.hpp"
+#include "hybrid/core/timer.hpp"
 #include "hybrid/hybrid_shared.hpp"
-#include "hybrid/timer.hpp"

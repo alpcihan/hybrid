@@ -1,8 +1,8 @@
 #pragma once
 
 #include "hybrid/hybrid_shared.hpp"
-#include "hybrid/camera.hpp"
-#include "hybrid/camera_controller.hpp"
+#include "hybrid/renderer/camera.hpp"
+#include "hybrid/renderer/camera_controller.hpp"
 
 namespace hybrid {
 
