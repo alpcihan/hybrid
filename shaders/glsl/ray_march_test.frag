@@ -6,7 +6,9 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
+#include "core/math.glsl"
 #include "core/ray.glsl"
+#include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs 
@@ -24,42 +26,49 @@ HYBRID_CORE_GBUFFER_TARGET
 const int RAY_MARCH_MAX_ITERATION = 1000;
 const float RAY_MARCH_HIT_DISTANCE = 0.01;
 
-float sdSphere(in vec3 p, in vec3 c, float r) {
-	return length(p - c) - r;
+float map(in vec3 p) {
+    float d = MAX_FLOAT;
+
+    // spheres
+    const float md = 0.75; 
+    vec3 q0 = p; q0 = mod(p, md) - md * 0.5;
+    d = min(d, sdSphere(q0, 0.15));
+
+    // box
+    vec3 q1 = p;
+    q1 += vec3(sin(_time),0,0);
+    q1.xz *= rot2D(_time);
+    q1.yz *= rot2D(_time);
+    d = smin(d, sdRoundBox(q1, vec3(0.5), 0.01), 0.3);
+
+    // ground
+    d = smin(d, sdZPlane(p, -0.4), 0.1);
+
+    return d;
 }
 
-float sceneHit(in vec3 p, out vec3 normal) {
-    const vec3 sphereCenter = vec3(0,0,0);
-    const float sphereRadius = 0.2;
-
-    vec3 q = p;
-    q = fract(p) - .5;
-
-    const float d = sdSphere(q, sphereCenter, sphereRadius);
-    normal = normalize(q - sphereCenter);
-
-    return d; 
+// https://iquilezles.org/articles/normalsSDF
+vec3 sdfNormal(in vec3 p) {
+    vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
+    return normalize( e.xyy*map(p+e.xyy) + 
+					  e.yyx*map(p+e.yyx) + 
+					  e.yxy*map(p+e.yxy) + 
+					  e.xxx*map(p+e.xxx) );  
 }
 
-float rayMarch(in vec3 origin, in vec3 dir, float near, float far, out vec3 position, out vec3 normal) { 
-    normal = vec3(0,0,0);
-    
+float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 position, out vec3 normal) { 
     float depth = near;
-    for (int i = 0; i < RAY_MARCH_MAX_ITERATION; i++) {
+    for (int i = 0; i < RAY_MARCH_MAX_ITERATION && depth < far; i++) {
         vec3 p = origin + dir * depth;
         
-        float dist = sceneHit(p, normal);
-        if (dist < RAY_MARCH_HIT_DISTANCE) {
+        float d = map(p);
+        if (d < RAY_MARCH_HIT_DISTANCE) {
             position = p;
-
+            normal = sdfNormal(p);
             return depth;
         }
 
-        depth += dist;
-        if ( depth >= far) {
-            return far;
-        }
-
+        depth += d;
     }
 
     return far;
@@ -71,7 +80,7 @@ void main()  {
     // ray marching
     vec3 positionWorld;
     vec3 normalWorld;
-    float depth = rayMarch(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
+    float depth = rayCast(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
 
     // hit check
     if(depth >= _projectionParams[1]) {
@@ -81,7 +90,7 @@ void main()  {
 
     // output
     gl_FragDepth = linearToZDepth(depthToEyeZ(depth, ray.direction));
-    gbuffer0.xyz = vec3(0.7,0.2,0.2);
+    gbuffer0.xyz = vec3(0.8);
     gbuffer1.xyz = positionWorld;
     gbuffer2.xyz = normalWorld;
 }

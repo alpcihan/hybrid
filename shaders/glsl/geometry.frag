@@ -23,7 +23,7 @@ HYBRID_CORE_GBUFFER_TARGET
 // program
 //--------------------------------------------------------------------------------------
 void main() {
-    gbuffer0 = vec4(0.2,0.2,0.7,1);
+    gbuffer0 = vec4(1,1,1,1);
     gbuffer1 = vec4(frag.positionWorld,1);
     gbuffer2 = vec4(frag.normalWorld,1);
 }

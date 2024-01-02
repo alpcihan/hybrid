@@ -52,9 +52,9 @@ struct PointLight {
 };
 
 const Material material = {1, 64};
-const AmbientLight ambientLight = {vec3(1), 0.0};
+const AmbientLight ambientLight = {vec3(1), 0.1};
 const DirectionalLight directionalLight = {vec3(0), 0.6, vec3(0.2f, 1.0f, 0.3f)};
-const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 1, 0.09, 0.032};
+const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 0.5, 0.09, 6.4};
 
 void main()  {
     // read g-buffer
@@ -79,7 +79,7 @@ void main()  {
     const vec3 dl_specular = material.specularStrength * dl_spec * directionalLight.color * directionalLight.strength;  
 
     // diffuse (point light)
-    vec3 pl_pos = pointLight.position; pl_pos.x += sin(_time*2);
+    vec3 pl_pos = pointLight.position; // pl_pos.x += sin(_time*2);
     const vec3 pl_lightToSurface = positionWorld - pl_pos;
     const float pl_distance = length(pl_lightToSurface);
     const float pl_attenuation = 1.0 / (pointLight.c + pointLight.l * pl_distance + pointLight.q * (pl_distance * pl_distance));
@@ -97,6 +97,7 @@ void main()  {
 
     // ambient light
     vec3 ambient = ambientLight.strength * ambientLight.color;
+    ambient *= pl_attenuation;
 
     // result
     finalColor = (ambient +
