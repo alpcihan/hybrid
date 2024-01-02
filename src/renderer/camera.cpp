@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hybrid/camera.hpp"
+#include "hybrid/renderer/camera.hpp"
 
 namespace hybrid {
 

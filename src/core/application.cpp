@@ -1,11 +1,14 @@
 #pragma once
 
-#include "hybrid/application.hpp"
-#include "hybrid/hybrid_render_pipeline.hpp"
-#include "hybrid/timer.hpp"
-#include "hybrid/perspective_camera.hpp"
+#include "hybrid/core/application.hpp"
+#include "hybrid/renderer/hybrid_render_pipeline.hpp"
+#include "hybrid/core/timer.hpp"
+#include "hybrid/renderer/perspective_camera.hpp"
+#include "hybrid/core/time.hpp"
 
 namespace hybrid {
+
+Application *Application::s_instance = nullptr;
 
 Application::Application() : m_tgai() {
     // instance
@@ -24,19 +27,21 @@ void Application::run() {
     
     m_tgai.setWindowTitle(*m_window, "hybrid");
 
-    std::unique_ptr<HybridRenderPipeline> renderer = std::make_unique<HybridRenderPipeline>(*m_window); 
+    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window); 
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
-        std::cout << std::format("FPS: {0}\n", 1 / m_deltaTime);
-        m_deltaTime = timer.elapsed();
-        timer.reset();
+        const float deltaTime = timer.elapsed(); 
+        // update time
+        {
+            std::cout << "FPS: " << 1 / deltaTime << "\n";
+            Time::_update(deltaTime);
+            timer.reset();
+        }
         
-        m_cameraController->update(m_deltaTime);
-        renderer->render(*m_camera);
+        m_cameraController->update(deltaTime);
+        renderPipeline->render(*m_camera);
     }
 }
-
-Application *Application::s_instance = nullptr;
 
 }  // namespace hybrid

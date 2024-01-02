@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hybrid/hybrid_shared.hpp"
-#include "hybrid/camera.hpp"
+#include "hybrid/renderer/camera.hpp"
 
 namespace hybrid {
 
@@ -17,6 +17,7 @@ private:
         alignas(16) glm::mat4 view;
         alignas(16) glm::vec4 zBufferParams;
         alignas(16) glm::vec4 projectionParams;
+        float time;
     };
 
 private:

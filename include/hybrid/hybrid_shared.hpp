@@ -8,4 +8,4 @@
 #include "tga/tga_utils.hpp"
 #include "tga/tga_vulkan/tga_vulkan.hpp"
 
-#include "hybrid/path.hpp"
+#include "hybrid/config/path.hpp"

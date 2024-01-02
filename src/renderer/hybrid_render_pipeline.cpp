@@ -1,10 +1,12 @@
-#include "hybrid/hybrid_render_pipeline.hpp"
+#include "hybrid/renderer/hybrid_render_pipeline.hpp"
 
-#include "hybrid/application.hpp"
+#include "hybrid/core/application.hpp"
+#include "hybrid/core/time.hpp"
 
 namespace hybrid {
 
-HybridRenderPipeline::HybridRenderPipeline(tga::Window& window) : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window)
+    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()) {
     _init();
 }
 
@@ -149,11 +151,11 @@ void HybridRenderPipeline::_initPasses() {
         });
 
         // pass
-        m_lightingPass = m_tgai.createRenderPass(
-            tga::RenderPassInfo{vs, fs, m_window}
-            .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
-            .setInputLayout(inputLayout)
-            .setRenderTarget(m_window));
+        m_lightingPass =
+            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs, m_window}
+                                        .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
+                                        .setInputLayout(inputLayout)
+                                        .setRenderTarget(m_window));
 
         // input sets
         m_lightingPassInputSets = {
@@ -184,12 +186,13 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
     m_uniformData->view = camera.getView();
     m_uniformData->zBufferParams[0] = 1 - camera.getFarPlane() / camera.getNearPlane();
     m_uniformData->zBufferParams[1] = camera.getFarPlane() / camera.getNearPlane();
-    m_uniformData->zBufferParams[2] = m_uniformData -> zBufferParams[0] / camera.getFarPlane();
-    m_uniformData->zBufferParams[3] = m_uniformData -> zBufferParams[1] / camera.getFarPlane();
+    m_uniformData->zBufferParams[2] = m_uniformData->zBufferParams[0] / camera.getFarPlane();
+    m_uniformData->zBufferParams[3] = m_uniformData->zBufferParams[1] / camera.getFarPlane();
     m_uniformData->projectionParams[0] = camera.getNearPlane();
     m_uniformData->projectionParams[1] = camera.getFarPlane();
-    m_uniformData->projectionParams[2] = 0; // unused
-    m_uniformData->projectionParams[3] = 0; // unused
+    m_uniformData->projectionParams[2] = 0;  // unused
+    m_uniformData->projectionParams[3] = 0;  // unused
+    m_uniformData->time = Time::getTime();
 }
 
 }  // namespace hybrid

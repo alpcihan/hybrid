@@ -9,7 +9,8 @@
 //--------------------------------------------------------------------------------------
 // inputs 
 //--------------------------------------------------------------------------------------
-layout(location = 0) in FragData{
+layout(location = 0) in FragData {
+    vec3 positionWorld;
     vec3 normalWorld;
 } frag;
 
@@ -22,7 +23,7 @@ HYBRID_CORE_GBUFFER_TARGET
 // program
 //--------------------------------------------------------------------------------------
 void main() {
-    gbuffer0 = vec4(1,0,0,1);
-    gbuffer1 = vec4(0,1,0,1);
+    gbuffer0 = vec4(1,1,1,1);
+    gbuffer1 = vec4(frag.positionWorld,1);
     gbuffer2 = vec4(frag.normalWorld,1);
 }

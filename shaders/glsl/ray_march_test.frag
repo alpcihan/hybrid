@@ -6,7 +6,9 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
+#include "core/math.glsl"
 #include "core/ray.glsl"
+#include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs 
@@ -21,55 +23,74 @@ HYBRID_CORE_GBUFFER_TARGET
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-const int max_iterations = 255;
-const float march_stop_threshold = 0.001;
+const int RAY_MARCH_MAX_ITERATION = 1000;
+const float RAY_MARCH_HIT_DISTANCE = 0.01;
 
-float dist_sphere(in vec3 p, in vec3 c, float r)
-{
-	return length(p - c) - r;
+float map(in vec3 p) {
+    float d = MAX_FLOAT;
+
+    // spheres
+    const float md = 0.75; 
+    vec3 q0 = p; q0 = mod(p, md) - md * 0.5;
+    d = min(d, sdSphere(q0, 0.15));
+
+    // box
+    vec3 q1 = p;
+    q1 += vec3(sin(_time),0,0);
+    q1.xz *= rot2D(_time);
+    q1.yz *= rot2D(_time);
+    d = smin(d, sdRoundBox(q1, vec3(0.5), 0.01), 0.3);
+
+    // ground
+    d = smin(d, sdZPlane(p, -0.4), 0.1);
+
+    return d;
 }
 
-float ray_march(in vec3 origin, in vec3 dir, float start, float end, out vec3 normal) {
-    
-    normal = vec3(0,0,0);
-    float depth = start;
+// https://iquilezles.org/articles/normalsSDF
+vec3 sdfNormal(in vec3 p) {
+    vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
+    return normalize( e.xyy*map(p+e.xyy) + 
+					  e.yyx*map(p+e.yyx) + 
+					  e.yxy*map(p+e.yxy) + 
+					  e.xxx*map(p+e.xxx) );  
+}
 
-    for (int i = 0; i < max_iterations; i++) {
-        vec3 current_pos = origin + dir * depth;
-
-        vec3 sphere_center = vec3(0,0,0);
-        float sphere_radius = 0.2;
-
-        float dist = dist_sphere( current_pos, sphere_center, sphere_radius );
-
-        if ( dist < march_stop_threshold ) {
-
-            normal = normalize(current_pos - sphere_center);
-
+float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 position, out vec3 normal) { 
+    float depth = near;
+    for (int i = 0; i < RAY_MARCH_MAX_ITERATION && depth < far; i++) {
+        vec3 p = origin + dir * depth;
+        
+        float d = map(p);
+        if (d < RAY_MARCH_HIT_DISTANCE) {
+            position = p;
+            normal = sdfNormal(p);
             return depth;
         }
 
-        depth += dist;
-        if ( depth >= end) {
-            return end;
-        }
-
+        depth += d;
     }
-    return end;
+
+    return far;
 }
 
 void main()  {
     Ray ray = createCameraRay(uv*2-1, inverse(_projection), inverse(_view));
     
-    vec3 normal;
-    float depth = ray_march(ray.origin, ray.direction,  _projectionParams[0], _projectionParams[1], normal);
+    // ray marching
+    vec3 positionWorld;
+    vec3 normalWorld;
+    float depth = rayCast(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], positionWorld, normalWorld);
 
+    // hit check
     if(depth >= _projectionParams[1]) {
       gl_FragDepth = 1;
       return;
     } 
 
-    gl_FragDepth = LinearToZDepth(depth, ray.direction);
-    gbuffer0.xyz = vec3(0.7,0.2,0.2);
-    gbuffer2.xyz = normal;
+    // output
+    gl_FragDepth = linearToZDepth(depthToEyeZ(depth, ray.direction));
+    gbuffer0.xyz = vec3(0.8);
+    gbuffer1.xyz = positionWorld;
+    gbuffer2.xyz = normalWorld;
 }

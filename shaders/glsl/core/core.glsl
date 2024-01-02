@@ -1,8 +1,6 @@
 #ifndef HYBRID_CORE_UTILS
 #define HYBRID_CORE_UTILS
 
-#define MAX_FLOAT 3.402823466e+38
-
 //--------------------------------------------------------------------------------------
 // default layouts
 //--------------------------------------------------------------------------------------
@@ -11,6 +9,7 @@ layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     mat4 _view;
     vec4 _zBufferParams;
     vec4 _projectionParams; // x: near, y: far, z: -, w: -
+    float _time;
 };
 
 // gbuffer 0: xyz: diffuse color,   w: -  
@@ -29,14 +28,17 @@ layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 //--------------------------------------------------------------------------------------
 // utils
 //--------------------------------------------------------------------------------------
+#define MAX_FLOAT 3.402823466e+38
 
-// linear to z buffer depth
-float LinearToZDepth(float depth, in vec3 direction)
-{
-    vec3 eyeForward = vec3(0.,0.,-1.) * mat3(_view);
-    float eyeZ = -depth * dot(direction, eyeForward);
-    
-    return _projection[2].z + _projection[3].z / eyeZ;
+// depth to eye z distance
+float depthToEyeZ(float depth, in vec3 direction) {
+    const vec3 eyeForward = vec3(0.,0.,-1.) * mat3(_view);
+    return depth * dot(direction, eyeForward);
+}
+
+// linear depth to z buffer depth
+float linearToZDepth(float z) {
+    return (1.0 / z - _zBufferParams.w) / _zBufferParams.z;
 }
 
 #endif
