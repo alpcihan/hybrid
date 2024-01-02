@@ -34,7 +34,7 @@ void Application::run() {
         const float deltaTime = timer.elapsed(); 
         // update time
         {
-            std::cout << std::format("FPS: {0}\n", 1 / deltaTime);
+            std::cout << "FPS: " << 1 / deltaTime << "\n";
             Time::_update(deltaTime);
             timer.reset();
         }
