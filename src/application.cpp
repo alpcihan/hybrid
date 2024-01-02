@@ -4,6 +4,7 @@
 #include "hybrid/hybrid_render_pipeline.hpp"
 #include "hybrid/timer.hpp"
 #include "hybrid/perspective_camera.hpp"
+#include "hybrid/time.hpp"
 
 namespace hybrid {
 
@@ -28,12 +29,18 @@ void Application::run() {
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
-        std::cout << std::format("FPS: {0}\n", 1 / m_deltaTime);
-        m_deltaTime = timer.elapsed();
-        timer.reset();
+        const float deltaTime = timer.elapsed(); 
+        // update time
+        {
+            std::cout << std::format("FPS: {0}\n", 1 / deltaTime);
+            Time::_update(deltaTime);
+            timer.reset();
+        }
         
-        m_cameraController->update(m_deltaTime);
+        m_cameraController->update(deltaTime);
         renderer->render(*m_camera);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
