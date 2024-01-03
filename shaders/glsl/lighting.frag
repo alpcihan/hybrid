@@ -52,8 +52,8 @@ struct PointLight {
 };
 
 const Material material = {1, 64};
-const AmbientLight ambientLight = {vec3(1), 0.1};
-const DirectionalLight directionalLight = {vec3(0), 0.6, vec3(0.2f, 1.0f, 0.3f)};
+const AmbientLight ambientLight = {vec3(1), 0.05};
+const DirectionalLight directionalLight = {vec3(0), 0, vec3(0.2f, 1.0f, 0.3f)};
 const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 0.5, 0.09, 6.4};
 
 void main()  {
@@ -90,14 +90,14 @@ void main()  {
     pl_diffuse *= pl_attenuation;
 
     // specular (point light)
-    const vec3 pl_reflectDir = reflect(normalWorld, pl_lightDir);
-    const float pl_spec = pow(max(dot(viewDir, -pl_reflectDir), 0.0), material.shininess);
+    const vec3 pl_reflectDir = reflect(pl_lightDir, normalWorld);
+    const float pl_spec = pow(max(dot(viewDir, pl_reflectDir), 0.0), material.shininess);
     vec3 pl_specular = material.specularStrength * pl_spec * pointLight.color * pointLight.strength;
     pl_specular *= pl_attenuation;
 
     // ambient light
     vec3 ambient = ambientLight.strength * ambientLight.color;
-    ambient *= pl_attenuation;
+    ambient *= pl_attenuation; // TODO: use seperate attenuation for ambient
 
     // result
     finalColor = (ambient +
