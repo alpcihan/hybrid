@@ -31,8 +31,3 @@ jobs:
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
-
-    - uses: actions/upload-artifact@v1
-      with:
-        name: examples
-        path: examples/example/example
