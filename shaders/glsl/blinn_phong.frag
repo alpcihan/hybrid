@@ -31,13 +31,11 @@ struct Material {
 };
 
 struct AmbientLight {
-    vec3 color;
-    float strength;
+    vec3 emissiveColor;
 };
 
 struct PointLight {
-    vec3 color;
-    float strength;
+    vec3 emissiveColor;
     vec3 position;
 
     float c;
@@ -45,15 +43,15 @@ struct PointLight {
     float q;
 };
 
-const Material material = {1, 64};
-const AmbientLight ambientLight = {vec3(1), 0.05};
-const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 0.5, 0.09, 6.4};
+const Material material = {1, 128};
+const PointLight pointLight = {vec3(1,1,1), vec3(0,0,1), 0.5, 0.09, 6.4};
+const AmbientLight ambientLight = {vec3(0,0,0)};
 
 void main() {
     // read g-buffer
-    const vec3 diffuseColor   = texture(gbuffer0, uv).xyz;
-    const vec3 positionWorld  = texture(gbuffer1, uv).xyz;
-    const vec3 normalWorld    = texture(gbuffer2, uv).xyz;
+    const vec3 albedo           = texture(gbuffer0, uv).xyz;
+    const vec3 positionWorld    = texture(gbuffer1, uv).xyz;
+    const vec3 normalWorld      = texture(gbuffer2, uv).xyz;
 
     //--------------------------------------------------------------------------------------
     // shading
@@ -70,22 +68,20 @@ void main() {
     const vec3 pl_halfwayDir = normalize(viewDir - pl_lightDir);
 
     const float pl_diff = max(dot(normalWorld, -pl_lightDir), 0.0);
-    vec3 pl_diffuse = pl_diff * pointLight.color * pointLight.strength;
+    vec3 pl_diffuse = pl_diff * pointLight.emissiveColor;
     pl_diffuse *= pl_attenuation;
 
     // specular (point light)
     const vec3 pl_reflectDir = reflect(pl_lightDir, normalWorld);
     const float pl_spec = pow(max(dot(normalWorld, pl_halfwayDir), 0.0), material.shininess);
-    vec3 pl_specular = material.specularStrength * pl_spec * pointLight.color * pointLight.strength;
+    vec3 pl_specular = material.specularStrength * pl_spec * pointLight.emissiveColor;
     pl_specular *= pl_attenuation;
 
     // ambient light
-    vec3 ambient = ambientLight.strength * ambientLight.color;
-    ambient *= pl_attenuation; // TODO: use seperate attenuation for ambient
+    vec3 ambient = ambientLight.emissiveColor;
 
     // result
-    finalColor = (ambient +
-                  pl_diffuse + pl_specular) * diffuseColor;
+    finalColor = (ambient + pl_diffuse + pl_specular) * albedo;
     //--------------------------------------------------------------------------------------
 
     // output
