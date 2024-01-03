@@ -35,12 +35,6 @@ struct AmbientLight {
     float strength;
 };
 
-struct DirectionalLight {
-    vec3 color;
-    float strength;
-    vec3 direction;
-};
-
 struct PointLight {
     vec3 color;
     float strength;
@@ -53,10 +47,9 @@ struct PointLight {
 
 const Material material = {1, 64};
 const AmbientLight ambientLight = {vec3(1), 0.05};
-const DirectionalLight directionalLight = {vec3(0), 0, vec3(0.2f, 1.0f, 0.3f)};
 const PointLight pointLight = {vec3(1), 1, vec3(0,0,1), 0.5, 0.09, 6.4};
 
-void main()  {
+void main() {
     // read g-buffer
     const vec3 diffuseColor   = texture(gbuffer0, uv).xyz;
     const vec3 positionWorld  = texture(gbuffer1, uv).xyz;
@@ -67,16 +60,6 @@ void main()  {
     vec3 finalColor = vec3(0);
     const vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
     const vec3 viewDir = normalize(viewPos - positionWorld);
-
-    // diffuse (directional light)
-    const vec3 dl_lightDir = directionalLight.direction;  
-    const float dl_diff = max(dot(normalWorld, dl_lightDir), 0.0);
-    const vec3 dl_diffuse = dl_diff * directionalLight.color * directionalLight.strength;
-
-    // specular (directional light)
-    const vec3 dl_reflectDir = reflect(-dl_lightDir, normalWorld);
-    const float dl_spec = pow(max(dot(viewDir, dl_reflectDir), 0.0), material.shininess);
-    const vec3 dl_specular = material.specularStrength * dl_spec * directionalLight.color * directionalLight.strength;  
 
     // diffuse (point light)
     vec3 pl_pos = pointLight.position;
@@ -102,7 +85,6 @@ void main()  {
 
     // result
     finalColor = (ambient +
-                  dl_diffuse + dl_specular +
                   pl_diffuse + pl_specular) * diffuseColor;
     //--------------------------------------------------------------------------------------
 
