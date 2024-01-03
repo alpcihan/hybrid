@@ -78,7 +78,7 @@ const PointLight lights[LIGHT_COUNT] = {
     {vec3(1), vec3(-1,0.1,2), 5},
 };
 
-const vec3 ambient = vec3(0);
+const vec3 ambient = vec3(0.0001);
 //--------------------------------------------------------------------------------------
 
 void main() {
@@ -90,7 +90,7 @@ void main() {
     // material
     const float metallic = 0.7;
     const float roughness = 0.2;
-    const float ao = 0.5;
+    const float ao = 0.01;
 
     //--------------------------------------------------------------------------------------
     // pbr shading | https://learnopengl.com/PBR/Lighting
@@ -130,8 +130,7 @@ void main() {
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;  
     }
     
-    vec3 ambient = vec3(0.0) * albedo * ao;
-    vec3 color = ambient + Lo;
+    vec3 color = Lo + ambient * albedo * ao;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
