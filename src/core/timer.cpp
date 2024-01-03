@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/core/timer.hpp"
 
 namespace hybrid {

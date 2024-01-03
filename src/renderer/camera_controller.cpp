@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/renderer/camera_controller.hpp"
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/core/application.hpp"

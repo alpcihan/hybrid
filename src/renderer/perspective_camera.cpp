@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/renderer/perspective_camera.hpp"
 
 namespace hybrid {

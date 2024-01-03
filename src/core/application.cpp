@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/core/application.hpp"
 #include "hybrid/renderer/hybrid_render_pipeline.hpp"
 #include "hybrid/core/timer.hpp"

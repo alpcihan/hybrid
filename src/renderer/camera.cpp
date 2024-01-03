@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/renderer/camera.hpp"
 
 namespace hybrid {
