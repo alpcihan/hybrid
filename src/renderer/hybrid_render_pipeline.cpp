@@ -134,7 +134,7 @@ void HybridRenderPipeline::_initPasses() {
     {
         // shader
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
-        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("lighting_frag.spv"), tga::ShaderType::fragment, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("pbr_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout
         tga::InputLayout inputLayout({
