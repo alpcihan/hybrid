@@ -23,8 +23,8 @@ HYBRID_CORE_GBUFFER_TARGET
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-const int RAY_MARCH_MAX_ITERATION = 1000;
-const float RAY_MARCH_HIT_DISTANCE = 0.01;
+const int RAY_MARCH_MAX_ITERATION = 255;
+const float RAY_MARCH_HIT_DISTANCE = 0.001;
 
 float map(in vec3 p) {
     float d = MAX_FLOAT;
