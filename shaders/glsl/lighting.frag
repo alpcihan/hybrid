@@ -79,19 +79,20 @@ void main()  {
     const vec3 dl_specular = material.specularStrength * dl_spec * directionalLight.color * directionalLight.strength;  
 
     // diffuse (point light)
-    vec3 pl_pos = pointLight.position; // pl_pos.x += sin(_time*2);
+    vec3 pl_pos = pointLight.position;
     const vec3 pl_lightToSurface = positionWorld - pl_pos;
+    const vec3 pl_lightDir = normalize(pl_lightToSurface);  
     const float pl_distance = length(pl_lightToSurface);
     const float pl_attenuation = 1.0 / (pointLight.c + pointLight.l * pl_distance + pointLight.q * (pl_distance * pl_distance));
+    const vec3 pl_halfwayDir = normalize(viewDir - pl_lightDir);
 
-    const vec3 pl_lightDir = normalize(pl_lightToSurface);  
     const float pl_diff = max(dot(normalWorld, -pl_lightDir), 0.0);
     vec3 pl_diffuse = pl_diff * pointLight.color * pointLight.strength;
     pl_diffuse *= pl_attenuation;
 
     // specular (point light)
     const vec3 pl_reflectDir = reflect(pl_lightDir, normalWorld);
-    const float pl_spec = pow(max(dot(viewDir, pl_reflectDir), 0.0), material.shininess);
+    const float pl_spec = pow(max(dot(normalWorld, pl_halfwayDir), 0.0), material.shininess);
     vec3 pl_specular = material.specularStrength * pl_spec * pointLight.color * pointLight.strength;
     pl_specular *= pl_attenuation;
 
