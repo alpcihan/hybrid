@@ -45,7 +45,7 @@ vec2 map(in vec3 p) {
     res = minx(res, vec2(sdSphere(q4, 0.5), 0));
 
     // ground
-    res = minx(res, vec2(sdZPlane(p, -0.4), 0));
+    res = minx(res, vec2(sdZPlane(p, -0.5), 0));
 
     return res;
 }
