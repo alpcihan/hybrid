@@ -15,26 +15,26 @@ void HybridRenderPipeline::render(const Camera& camera) {
 
     auto nextFrame = m_tgai.nextFrame(m_window);
     m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  // 0 - buffer update
-                .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+            .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
 
-                // 1 - geometry pass
-                .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
-                .bindInputSet(m_geometryPassInputSets[0])
-                .draw(3, 0)
+            // 1 - geometry pass
+            .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
+            .bindInputSet(m_geometryPassInputSets[0])
+            .draw(3, 0)
 
-                // 2 - custom geometry pass
-                .setRenderPass(m_customGeometryPass, 0)
-                .bindInputSet(m_customGeometryPassInputSets[0])
-                .draw(3, 0)
+            // 2 - custom geometry pass
+            .setRenderPass(m_customGeometryPass, 0)
+            .bindInputSet(m_customGeometryPassInputSets[0])
+            .draw(3, 0)
 
-                // 3 - lighting pass
-                .setRenderPass(m_lightingPass, nextFrame)
-                .bindInputSet(m_lightingPassInputSets[0])
-                .bindInputSet(m_lightingPassInputSets[1])
-                .draw(3, 0)
+            // 3 - lighting pass
+            .setRenderPass(m_lightingPass, nextFrame)
+            .bindInputSet(m_lightingPassInputSets[0])
+            .bindInputSet(m_lightingPassInputSets[1])
+            .draw(3, 0)
 
-                // command end
-                .endRecording();
+            // command end
+            .endRecording();
 
     // execute commands and show the result
     m_tgai.execute(m_cmd);
@@ -177,7 +177,7 @@ void HybridRenderPipeline::_initPasses() {
                                    {
                                        {m_specularReflectionTex, 0},
                                    },
-                                   1}),
+                                   2}),
 
         };
 
