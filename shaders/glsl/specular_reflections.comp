@@ -6,7 +6,7 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
-#include "core/ray.glsl"
+#include "core/ray_march_test.glsl"
 
 //--------------------------------------------------------------------------------------
 // work group local size
@@ -17,6 +17,7 @@ layout(local_size_y = 32) in;
 //--------------------------------------------------------------------------------------
 // resources
 //--------------------------------------------------------------------------------------
+HYBRID_CORE_GBUFFER_SAMPLER
 layout(set = 2, binding = 0, rgba16f) uniform image2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------
@@ -29,5 +30,21 @@ void main() {
     if(id.x >= targetResolution.x || id.y >= targetResolution.y) return;
 
     const vec2 uv = vec2(id) / targetResolution;
-    imageStore(_specularReflectionMap, id, vec4(uv.x,uv.y,0,1));
+
+    // read gbuffer
+    const vec4 gb2 = texture(gbuffer2, uv);
+
+    if(gb2.w == HYBRID_BACKGROUND_FLAG) {
+        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+        return;
+    }
+
+    // init camera ray
+    const vec3 camOrigin = (inverse(_view)*vec4(0,0,0,1)).xyz;
+
+    // ray march
+    const float roughness   = texture(gbuffer0, uv).w;
+    const vec3  normalWorld = gb2.xyz;
+
+    imageStore(_specularReflectionMap, id, vec4(0,0,0,1));
 }

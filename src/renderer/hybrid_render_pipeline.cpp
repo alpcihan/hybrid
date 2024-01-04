@@ -21,7 +21,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  
             // rp1 + buffer upload
             .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
-            .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
+            .setRenderPass(m_geometryPass, 0, {0, 0, 0, 0})
             .bindInputSet(m_geometryPassInputSets[0])
             .draw(3, 0)
 
@@ -56,7 +56,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .draw(3, 0)
 
         // geometry pass
-        .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
+        .setRenderPass(m_geometryPass, 0, {0, 0, 0, 0})
         .bindInputSet(m_geometryPassInputSets[0])
         .draw(3, 0)
 

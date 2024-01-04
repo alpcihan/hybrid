@@ -87,13 +87,13 @@ void main() {
     const vec4 gb0  = texture(gbuffer0, uv);
     const vec4 gb1  = texture(gbuffer1, uv);
     const vec4 gb2  = texture(gbuffer2, uv);
-    const vec4 a    = texture(_specularReflectionMap, uv);
-
+    
     const vec3  albedo          = gb0.xyz;
     const float roughness       = gb0.w;
     const vec3  positionWorld   = gb1.xyz;
     const float metallic        = gb1.w;
     const vec3  normalWorld     = gb2.xyz;
+    const vec4  reflectionMap    = texture(_specularReflectionMap, uv);
 
     // material
     const float ao = 0.01;

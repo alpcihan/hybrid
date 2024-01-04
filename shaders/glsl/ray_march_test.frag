@@ -34,7 +34,6 @@ void main()  {
       return;
     } 
 
-
     // material
     const vec3  albedo      = vec3(0.8);
     const float roughness   = 0.2;
@@ -44,5 +43,5 @@ void main()  {
     gl_FragDepth    = linearToZDepth(depthToEyeZ(depth, ray.direction));
     gbuffer0        = vec4(albedo, roughness);
     gbuffer1        = vec4(positionWorld, metallic);
-    gbuffer2.xyz    = sdfNormal(positionWorld);
+    gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);
 }

@@ -12,9 +12,10 @@ layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     float _time;
 };
 
+// TODO: set different names for read and write gbuffers
 // gbuffer 0: xyz: albedo,          w: roughness  
 // gbuffer 1: xyz: world pos,       w: metallic
-// gbuffer 2: xyz: world normal,    w: - 
+// gbuffer 2: xyz: world normal,    w: 0 -> background 1 -> object
 #define HYBRID_CORE_GBUFFER_TARGET \
 layout(location = 0) out vec4 gbuffer0; \
 layout(location = 1) out vec4 gbuffer1; \
@@ -24,6 +25,12 @@ layout(location = 2) out vec4 gbuffer2; \
 layout(set = 1, binding = 0) uniform sampler2D gbuffer0; \
 layout(set = 1, binding = 1) uniform sampler2D gbuffer1; \
 layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
+
+//--------------------------------------------------------------------------------------
+// macros
+//--------------------------------------------------------------------------------------
+#define HYBRID_BACKGROUND_FLAG 0
+#define HYBRID_OBJECT_FLAG 1
 
 //--------------------------------------------------------------------------------------
 // utils
