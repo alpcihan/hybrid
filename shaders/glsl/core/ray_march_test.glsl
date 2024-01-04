@@ -18,7 +18,7 @@ float map(in vec3 p) {
     float d = MAX_FLOAT;
 
     // spheres
-    const float md = 0.75; 
+    const float md = 1; 
     vec3 q0 = p; q0 = mod(p, md) - md * 0.5;
     d = min(d, sdSphere(q0, 0.15));
 

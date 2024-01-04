@@ -2,6 +2,17 @@
 #define HYBRID_CORE_UTILS
 
 //--------------------------------------------------------------------------------------
+// structs
+//--------------------------------------------------------------------------------------
+// TODO: might create a seperate file
+struct Hybrid_PointLight {
+    vec3 color;
+    vec3 position;
+
+    float attenuationCoeff; // TODO: add constant and linear term
+};
+
+//--------------------------------------------------------------------------------------
 // default layouts
 //--------------------------------------------------------------------------------------
 layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
@@ -25,6 +36,14 @@ layout(location = 2) out vec4 gbuffer2; \
 layout(set = 1, binding = 0) uniform sampler2D gbuffer0; \
 layout(set = 1, binding = 1) uniform sampler2D gbuffer1; \
 layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
+
+// TODO: this will be replaced with light buffer
+#define HYBRID_LIGHT_COUNT 3
+const Hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
+    {vec3(1), vec3(-0.5,1,2), 5},
+    {vec3(1), vec3(1,0,2),    5},
+    {vec3(1), vec3(-1,0.1,2), 5},
+};
 
 //--------------------------------------------------------------------------------------
 // macros

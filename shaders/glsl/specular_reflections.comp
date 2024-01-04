@@ -39,12 +39,25 @@ void main() {
         return;
     }
 
-    // init camera ray
+    // read gbuffer
+    const float roughness       = texture(gbuffer0, uv).w;
+    const vec3  positionWorld   = texture(gbuffer1, uv).xyz;
+    const vec3  normalWorld     = gb2.xyz;
+
+    // create specular reflection ray
     const vec3 camOrigin = (inverse(_view)*vec4(0,0,0,1)).xyz;
+    const vec3 toSurface = normalize(positionWorld - camOrigin);
+    vec3 rayDir = reflect(toSurface, normalWorld);
+    Ray ray = createRay(camOrigin + rayDir * 0.00001, rayDir);
 
-    // ray march
-    const float roughness   = texture(gbuffer0, uv).w;
-    const vec3  normalWorld = gb2.xyz;
+    vec3 hitPositionWorld;
+    float depth = rayCast(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], hitPositionWorld);
 
-    imageStore(_specularReflectionMap, id, vec4(0,0,0,1));
+    if(depth >= _projectionParams[1]) {
+        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+        return;
+    } 
+    
+    vec3 color = vec3(1,0,0) / depth;
+    imageStore(_specularReflectionMap, id, vec4(color,1));
 }
