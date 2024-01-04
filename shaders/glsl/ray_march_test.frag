@@ -89,9 +89,9 @@ void main()  {
     } 
 
     // material
-    const vec3 albedo = vec3(0.8);
-    const float roughness = 0.2;
-    const float metallic = 0.8;
+    const vec3  albedo      = vec3(0.8);
+    const float roughness   = 0.2;
+    const float metallic    = 0.8;
 
     // output
     gl_FragDepth    = linearToZDepth(depthToEyeZ(depth, ray.direction));
