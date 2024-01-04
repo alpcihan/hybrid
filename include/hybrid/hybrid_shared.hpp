@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include "tga/tga.hpp"
 #include "tga/tga_utils.hpp"

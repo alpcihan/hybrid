@@ -12,8 +12,8 @@ layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     float _time;
 };
 
-// gbuffer 0: xyz: diffuse color,   w: -  
-// gbuffer 1: xyz: world pos,       w: -
+// gbuffer 0: xyz: albedo,          w: roughness  
+// gbuffer 1: xyz: world pos,       w: metallic
 // gbuffer 2: xyz: world normal,    w: - 
 #define HYBRID_CORE_GBUFFER_TARGET \
 layout(location = 0) out vec4 gbuffer0; \
