@@ -60,7 +60,7 @@ void main() {
     //--------------------------------------------------------------------------------------
 
     // output
-    //fragOut = reflectionMap;
-    color += reflectionMap.xyz * 0.1;
+    // fragOut = reflectionMap;
+    color += reflectionMap.xyz * 0.5;
     fragOut = vec4(color, 1);  
 }

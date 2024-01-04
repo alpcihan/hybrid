@@ -26,7 +26,15 @@ void main()  {
     
     // ray marching
     vec3 positionWorld;
-    float depth = rayCast(ray.origin, ray.direction, _projectionParams[0], _projectionParams[1], positionWorld);
+    hybrid_PBRMaterial mat;
+    float depth = rayCast(
+      ray.origin,
+      ray.direction,
+      _projectionParams[0],
+      _projectionParams[1],
+      positionWorld,
+      mat
+    );
 
     // hit check
     if(depth >= _projectionParams[1]) {
@@ -34,14 +42,9 @@ void main()  {
       return;
     } 
 
-    // material
-    const vec3  albedo      = vec3(0.8);
-    const float roughness   = 0.2;
-    const float metallic    = 0.8;
-
     // output
     gl_FragDepth    = linearToZDepth(depthToEyeZ(depth, ray.direction));
-    gbuffer0        = vec4(albedo, roughness);
-    gbuffer1        = vec4(positionWorld, metallic);
+    gbuffer0        = vec4(mat.albedo, mat.roughness);
+    gbuffer1        = vec4(positionWorld, mat.metallic);
     gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);
 }

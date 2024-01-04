@@ -5,11 +5,17 @@
 // structs
 //--------------------------------------------------------------------------------------
 // TODO: might create a seperate file
-struct Hybrid_PointLight {
+struct hybrid_PointLight {
     vec3 color;
     vec3 position;
 
     float attenuationCoeff; // TODO: add constant and linear term
+};
+
+struct hybrid_PBRMaterial {
+    vec3 albedo;
+    float roughness;
+    float metallic;
 };
 
 //--------------------------------------------------------------------------------------
@@ -39,7 +45,7 @@ layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 
 // TODO: this will be replaced with light buffer
 #define HYBRID_LIGHT_COUNT 3
-const Hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
+const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
     {vec3(1), vec3(-0.5,1,2), 5},
     {vec3(1), vec3(1,0,2),    5},
     {vec3(1), vec3(-1,0.1,2), 5},
