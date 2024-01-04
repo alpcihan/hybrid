@@ -14,23 +14,48 @@ void HybridRenderPipeline::render(const Camera& camera) {
     _updateUniformData(camera);
 
     auto nextFrame = m_tgai.nextFrame(m_window);
+
+    static bool isInit = true;
+
+    if(isInit) {
+        m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  
+            // rp1 + buffer upload
+            .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+            .setRenderPass(m_geometryPass, 0, {0, 0, 0, 0})
+            .bindInputSet(m_geometryPassInputSets[0])
+            .draw(3, 0)
+            // rp 2
+            .setRenderPass(m_customGeometryPass, 0)
+            .bindInputSet(m_customGeometryPassInputSets[0])
+            .draw(3, 0)
+            .endRecording();
+        m_tgai.execute(m_cmd);
+        isInit = false;
+    }
+
     m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  // 0 - buffer update
                 .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
 
-                // 1 - geometry pass
-                .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
-                .bindInputSet(m_geometryPassInputSets[0])
-                .draw(3, 0)
+                // shadow pass
+                .setComputePass(m_shadowPass)
+                .bindInputSet(m_shadowInputSets[0])
+                .bindInputSet(m_shadowInputSets[1])
+                .dispatch((m_res.first+31)/32,(m_res.second+31)/32,1)
+                .barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::FragmentShader)
 
-                // 2 - custom geometry pass
-                .setRenderPass(m_customGeometryPass, 0)
-                .bindInputSet(m_customGeometryPassInputSets[0])
-                .draw(3, 0)
-
-                // 3 - lighting pass
+                // lighting pass
                 .setRenderPass(m_lightingPass, nextFrame)
                 .bindInputSet(m_lightingPassInputSets[0])
                 .bindInputSet(m_lightingPassInputSets[1])
+                .draw(3, 0)
+
+                // geometry pass
+                .setRenderPass(m_geometryPass, 0, {0, 0, 0, 0})
+                .bindInputSet(m_geometryPassInputSets[0])
+                .draw(3, 0)
+                // custom geometry pass
+                .setRenderPass(m_customGeometryPass, 0)
+                .bindInputSet(m_customGeometryPassInputSets[0])
                 .draw(3, 0)
 
                 // command end
@@ -47,15 +72,16 @@ void HybridRenderPipeline::_init() {
 }
 
 void HybridRenderPipeline::_initBuffers() {
-    const auto [resX, resY] = Application::get().getScreenResolution();
+    m_res = Application::get().getScreenResolution();
 
     // init gbuffer
-    m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
+    m_gBuffer = {m_tgai.createTexture({m_res.first, m_res.second, tga::Format::r16g16b16a16_sfloat}),
+                 m_tgai.createTexture({m_res.first, m_res.second, tga::Format::r16g16b16a16_sfloat}),
+                 m_tgai.createTexture({m_res.first, m_res.second, tga::Format::r16g16b16a16_sfloat})};
 
     // shadow map (contains shadow coefficient)
-    m_shadowTex = m_tgai.createTexture({resX,resY, tga::Format::r16_sfloat});
+    auto shadowStaging = m_tgai.createStagingBuffer({sizeof(float)*m_res.first*m_res.second});
+    m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*m_res.first*m_res.second},shadowStaging});
 
     // init uniform buffer
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
@@ -141,17 +167,17 @@ void HybridRenderPipeline::_initPasses() {
         //input layout
         tga::InputLayout inputLayout(
             {
-                {   
                     //S0
+                {
+                    {tga::BindingType::uniformBuffer}
+                },
+                {   
+                    //S1
                     {tga::BindingType::sampler, 1},  // B0: gbuffer0
                     {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                    {tga::BindingType::sampler, 1}   // B2: gbuffer2
+                    {tga::BindingType::sampler, 1},  // B2: gbuffer2
+                    {tga::BindingType::storageBuffer}// B3: shadowMap
                 },
-                {
-                    //S1
-                    {tga::BindingType::storageImage}
-
-                }
             }  
         );
 
@@ -162,17 +188,18 @@ void HybridRenderPipeline::_initPasses() {
         m_shadowInputSets = {
             m_tgai.createInputSet({m_shadowPass,
                                    {
-                                       {m_gBuffer[0], 0},
-                                       {m_gBuffer[1], 1},
-                                       {m_gBuffer[2], 2},
+                                       {m_uniformBuffer, 0},
                                    },
                                    0}),
             m_tgai.createInputSet({m_shadowPass,
-                                    {
-                                        {m_shadowTex,0}
-                                    },    
-                                    1})
-        };
+                                   {
+                                       {m_gBuffer[0], 0},
+                                       {m_gBuffer[1], 1},
+                                       {m_gBuffer[2], 2},
+                                       {m_shadowMap,  3}
+                                   },
+                                   1})
+            };
         
         m_tgai.free(cs);
     }
@@ -193,7 +220,8 @@ void HybridRenderPipeline::_initPasses() {
                 // S1
                 {tga::BindingType::sampler, 1},  // B0: gbuffer0
                 {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                {tga::BindingType::sampler, 1}   // B2: gbuffer2
+                {tga::BindingType::sampler, 1},  // B2: gbuffer2
+                {tga::BindingType::storageBuffer}// B3: shadowMap 
             },
         });
 
@@ -216,6 +244,7 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[0], 0},
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
+                                       {m_shadowMap,  3}
                                    },
                                    1}),
 
@@ -237,8 +266,8 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
     m_uniformData->zBufferParams[3] = m_uniformData->zBufferParams[1] / camera.getFarPlane();
     m_uniformData->projectionParams[0] = camera.getNearPlane();
     m_uniformData->projectionParams[1] = camera.getFarPlane();
-    m_uniformData->projectionParams[2] = 0;  // unused
-    m_uniformData->projectionParams[3] = 0;  // unused
+    m_uniformData->projectionParams[2] = m_res.first;  // unused
+    m_uniformData->projectionParams[3] = m_res.second;  // unused
     m_uniformData->time = Time::getTime();
 }
 

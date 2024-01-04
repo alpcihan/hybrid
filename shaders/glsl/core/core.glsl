@@ -2,13 +2,13 @@
 #define HYBRID_CORE_UTILS
 
 //--------------------------------------------------------------------------------------
-// default layouts
+// default layouts TODO: This can be made optional like gBuffer
 //--------------------------------------------------------------------------------------
 layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     mat4 _projection;
     mat4 _view;
     vec4 _zBufferParams;
-    vec4 _projectionParams; // x: near, y: far, z: -, w: -
+    vec4 _projectionParams; // x: near, y: far, z: resX, w: resY
     float _time;
 };
 

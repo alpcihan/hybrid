@@ -24,11 +24,14 @@ private:
     tga::Interface& m_tgai;
 
     tga::Window m_window;
+    std::pair<uint32_t,uint32_t> m_res;
     tga::CommandBuffer m_cmd;
 
     // gbuffer
     std::vector<tga::Texture> m_gBuffer;
-    tga::Texture m_shadowTex;
+    
+    //shadow map
+    tga::Buffer m_shadowMap;
 
     // uniform buffer
     UniformData* m_uniformData;
