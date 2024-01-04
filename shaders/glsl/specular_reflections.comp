@@ -1,7 +1,29 @@
 #version 450
-#extension GL_EXT_nonuniform_qualifier: enable
+#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_GOOGLE_include_directive : enable
 
+//--------------------------------------------------------------------------------------
+// includes
+//--------------------------------------------------------------------------------------
+#include "core/core.glsl"
+#include "core/ray.glsl"
+
+//--------------------------------------------------------------------------------------
+// layouts
+//--------------------------------------------------------------------------------------
 layout(local_size_x = 32) in;
 layout(local_size_y = 32) in;
 
-void main() {}
+layout(set = 2, binding = 0, rgba16f) uniform image2D _specularReflectionMap;
+
+//--------------------------------------------------------------------------------------
+// program
+//--------------------------------------------------------------------------------------
+void main() {
+    const ivec2 id = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    const ivec2 targetResolution = imageSize(_specularReflectionMap);
+
+    if(id.x >= targetResolution.x || id.y >= targetResolution.y) return;
+
+    imageStore(_specularReflectionMap, id, vec4(1,1,1,1));
+}

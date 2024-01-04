@@ -11,30 +11,61 @@ HybridRenderPipeline::HybridRenderPipeline(tga::Window& window)
 }
 
 void HybridRenderPipeline::render(const Camera& camera) {
+    const auto [resX, resY] = Application::get().getScreenResolution();
+
     _updateUniformData(camera);
 
-    auto nextFrame = m_tgai.nextFrame(m_window);
-    m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  // 0 - buffer update
-            .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+    static bool isInit = true;
 
-            // 1 - geometry pass
+    if(isInit) {
+        m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  
+            // rp1 + buffer upload
+            .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
             .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
             .bindInputSet(m_geometryPassInputSets[0])
             .draw(3, 0)
 
-            // 2 - custom geometry pass
+            // rp 2
             .setRenderPass(m_customGeometryPass, 0)
             .bindInputSet(m_customGeometryPassInputSets[0])
             .draw(3, 0)
 
-            // 3 - lighting pass
-            .setRenderPass(m_lightingPass, nextFrame)
-            .bindInputSet(m_lightingPassInputSets[0])
-            .bindInputSet(m_lightingPassInputSets[1])
-            .draw(3, 0)
-
-            // command end
             .endRecording();
+        m_tgai.execute(m_cmd);
+        isInit = false;
+    }
+
+    auto nextFrame = m_tgai.nextFrame(m_window);
+    m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  
+        // upload
+        .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+
+        // cp
+        .setComputePass(m_specularReflectionPass)
+        .bindInputSet(m_specularReflectionPassInputSets[0])
+        .bindInputSet(m_specularReflectionPassInputSets[1])
+        .bindInputSet(m_specularReflectionPassInputSets[2])
+        .dispatch((resX+31)/32, (resY+31)/32, 1)
+        .barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::FragmentShader)
+
+        // lighting
+        .setRenderPass(m_lightingPass, nextFrame)
+        .bindInputSet(m_lightingPassInputSets[0])
+        .bindInputSet(m_lightingPassInputSets[1])
+        .draw(3, 0)
+
+        // geometry pass
+        .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
+        .bindInputSet(m_geometryPassInputSets[0])
+        .draw(3, 0)
+
+        // custom geometry pass
+        .setRenderPass(m_customGeometryPass, 0)
+        .bindInputSet(m_customGeometryPassInputSets[0])
+        .draw(3, 0)
+
+        // command end
+        .endRecording();
 
     // execute commands and show the result
     m_tgai.execute(m_cmd);
