@@ -64,6 +64,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
     float v = d*dot(  q, v1v0 );
     float t = d*dot( -n, rov0 );
     if( u<0.0 || v<0.0 || (u+v)>1.0 ) t = MAX_FLOAT;
+    if(t < 0.001) t= MAX_FLOAT;
     return t;
 }
 
@@ -89,8 +90,9 @@ void main() {
     vec2 uv = vec2(texCoords)/vec2(bounds);
     const vec3 worldPos = texture(gbuffer1, uv).xyz;
     const vec3 worldNormal = texture(gbuffer2, uv).xyz;
-
-    vec3 rayOrigin = worldPos;
+    vec3 epsilon = worldNormal * 0.0001;
+    vec3 rayOrigin = worldPos+epsilon;
+    
     float shadowCoeff = 1.0;
 
     float lightContribution = 1.0 / LIGHT_COUNT;
@@ -102,9 +104,8 @@ void main() {
         if(rdl <= 0) continue; // light is behind
 
         float t_light = distance(lights[i].position , rayOrigin);
-        //To prevent self shadows
-        vec3 epsilon = worldNormal * 0.0001;
-        Ray ray = createRay(rayOrigin + epsilon, rayDirection);
+
+        Ray ray = createRay(rayOrigin, rayDirection);
         shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
     }    
     
