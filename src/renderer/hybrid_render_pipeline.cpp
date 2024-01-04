@@ -52,6 +52,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .setRenderPass(m_lightingPass, nextFrame)
         .bindInputSet(m_lightingPassInputSets[0])
         .bindInputSet(m_lightingPassInputSets[1])
+        .bindInputSet(m_lightingPassInputSets[2])
         .draw(3, 0)
 
         // geometry pass
@@ -235,6 +236,10 @@ void HybridRenderPipeline::_initPasses() {
                 {tga::BindingType::sampler, 1},  // B1: gbuffer1
                 {tga::BindingType::sampler, 1}   // B2: gbuffer2
             },
+            {
+                // S2
+                {tga::BindingType::sampler, 1},  // B0: specular reflection map
+            },
         });
 
         // pass
@@ -258,6 +263,11 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[2], 2},
                                    },
                                    1}),
+            m_tgai.createInputSet({m_lightingPass,
+                                   {
+                                       {m_specularReflectionTex, 0},
+                                   },
+                                   2}),
 
         };
 

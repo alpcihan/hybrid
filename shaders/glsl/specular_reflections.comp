@@ -9,11 +9,14 @@
 #include "core/ray.glsl"
 
 //--------------------------------------------------------------------------------------
-// layouts
+// work group local size
 //--------------------------------------------------------------------------------------
 layout(local_size_x = 32) in;
 layout(local_size_y = 32) in;
 
+//--------------------------------------------------------------------------------------
+// resources
+//--------------------------------------------------------------------------------------
 layout(set = 2, binding = 0, rgba16f) uniform image2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------
@@ -25,5 +28,6 @@ void main() {
 
     if(id.x >= targetResolution.x || id.y >= targetResolution.y) return;
 
-    imageStore(_specularReflectionMap, id, vec4(1,1,1,1));
+    const vec2 uv = vec2(id) / targetResolution;
+    imageStore(_specularReflectionMap, id, vec4(uv.x,uv.y,0,1));
 }

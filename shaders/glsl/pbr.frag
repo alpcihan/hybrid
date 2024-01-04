@@ -17,6 +17,7 @@ HYBRID_CORE_GBUFFER_SAMPLER
 // inputs 
 //--------------------------------------------------------------------------------------
 layout (location = 0) in vec2 uv;
+layout (set = 2, binding = 0) uniform sampler2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------
 // outputs
@@ -86,6 +87,7 @@ void main() {
     const vec4 gb0  = texture(gbuffer0, uv);
     const vec4 gb1  = texture(gbuffer1, uv);
     const vec4 gb2  = texture(gbuffer2, uv);
+    const vec4 a    = texture(_specularReflectionMap, uv);
 
     const vec3  albedo          = gb0.xyz;
     const float roughness       = gb0.w;
@@ -141,5 +143,5 @@ void main() {
     //--------------------------------------------------------------------------------------
 
     // output
-    fragOut = vec4(color, 1);  
+    fragOut = vec4(a);  
 }
