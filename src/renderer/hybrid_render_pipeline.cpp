@@ -42,17 +42,20 @@ void HybridRenderPipeline::render(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_init() {
-    _initBuffers();
+    _initResources();
     _initPasses();
 }
 
-void HybridRenderPipeline::_initBuffers() {
+void HybridRenderPipeline::_initResources() {
     const auto [resX, resY] = Application::get().getScreenResolution();
 
-    // init gbuffer
+    // gbuffer
     m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
+    
+    // specular reflection map
+    m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat});
 
     // init uniform buffer
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
@@ -130,13 +133,66 @@ void HybridRenderPipeline::_initPasses() {
         m_tgai.free(fs);
     }
 
-    // 2 - lighting pass
+    // specular reflections pass
+    {
+         // shader
+        tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("specular_reflections_comp.spv"), tga::ShaderType::compute, m_tgai);
+
+        // input layout (TODO: reuse)
+        tga::InputLayout inputLayout({
+            {
+                // S0
+                tga::BindingType::uniformBuffer  // B0: uniform buffer
+            },
+            {
+                // S1
+                {tga::BindingType::sampler, 1},  // B0: gbuffer0
+                {tga::BindingType::sampler, 1},  // B1: gbuffer1
+                {tga::BindingType::sampler, 1}   // B2: gbuffer2
+            },
+            {
+                // S2
+                tga::BindingType::storageImage
+            }
+        });
+
+        // pass
+        m_specularReflectionPass = m_tgai.createComputePass({cs, inputLayout});
+
+        // input sets
+        m_specularReflectionPassInputSets = {
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_uniformBuffer, 0},
+                                   },
+                                   0}),
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_gBuffer[0], 0},
+                                       {m_gBuffer[1], 1},
+                                       {m_gBuffer[2], 2},
+                                   },
+                                   1}),
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_specularReflectionTex, 0},
+                                   },
+                                   1}),
+
+        };
+
+        // free
+        m_tgai.free(cs);
+    }
+
+
+    // lighting pass
     {
         // shader
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("pbr_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
-        // input layout
+        // input layout (TODO: reuse)
         tga::InputLayout inputLayout({
             {
                 // S0
