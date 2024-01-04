@@ -54,6 +54,9 @@ void HybridRenderPipeline::_initBuffers() {
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
 
+    // shadow map (contains shadow coefficient)
+    m_shadowTex = m_tgai.createTexture({resX,resY, tga::Format::r16_sfloat});
+
     // init uniform buffer
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
     m_uniformData = static_cast<UniformData *>(m_tgai.getMapping(m_uniformDataStage));
@@ -130,7 +133,51 @@ void HybridRenderPipeline::_initPasses() {
         m_tgai.free(fs);
     }
 
-    // 2 - lighting pass
+     //shadow pass
+    {
+        //shader
+        tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("shadow_comp.spv"),tga::ShaderType::compute, m_tgai);
+
+        //input layout
+        tga::InputLayout inputLayout(
+            {
+                {   
+                    //S0
+                    {tga::BindingType::sampler, 1},  // B0: gbuffer0
+                    {tga::BindingType::sampler, 1},  // B1: gbuffer1
+                    {tga::BindingType::sampler, 1}   // B2: gbuffer2
+                },
+                {
+                    //S1
+                    {tga::BindingType::storageImage}
+
+                }
+            }  
+        );
+
+        //pass
+        m_shadowPass = m_tgai.createComputePass(tga::ComputePassInfo{cs,inputLayout});
+
+        //input set
+        m_shadowInputSets = {
+            m_tgai.createInputSet({m_shadowPass,
+                                   {
+                                       {m_gBuffer[0], 0},
+                                       {m_gBuffer[1], 1},
+                                       {m_gBuffer[2], 2},
+                                   },
+                                   0}),
+            m_tgai.createInputSet({m_shadowPass,
+                                    {
+                                        {m_shadowTex,0}
+                                    },    
+                                    1})
+        };
+        
+        m_tgai.free(cs);
+    }
+
+    // lighting pass
     {
         // shader
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);

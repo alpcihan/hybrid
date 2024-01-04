@@ -28,6 +28,7 @@ private:
 
     // gbuffer
     std::vector<tga::Texture> m_gBuffer;
+    tga::Texture m_shadowTex;
 
     // uniform buffer
     UniformData* m_uniformData;
@@ -38,11 +39,14 @@ private:
     tga::RenderPass m_geometryPass;
     tga::RenderPass m_customGeometryPass;
     tga::RenderPass m_lightingPass;
+    tga::ComputePass m_shadowPass;
 
     // input sets
     std::vector<tga::InputSet> m_geometryPassInputSets;
     std::vector<tga::InputSet> m_customGeometryPassInputSets;
     std::vector<tga::InputSet> m_lightingPassInputSets;
+    std::vector<tga::InputSet> m_shadowInputSets;
+    
 
 private:
     void _init();
