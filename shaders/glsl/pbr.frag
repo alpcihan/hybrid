@@ -83,13 +83,17 @@ const vec3 ambient = vec3(0.0001);
 
 void main() {
     // read g-buffer
-    const vec3 albedo         = texture(gbuffer0, uv).xyz;
-    const vec3 positionWorld  = texture(gbuffer1, uv).xyz;
-    const vec3 normalWorld    = texture(gbuffer2, uv).xyz;
+    const vec4 gb0  = texture(gbuffer0, uv);
+    const vec4 gb1  = texture(gbuffer1, uv);
+    const vec4 gb2  = texture(gbuffer2, uv);
+
+    const vec3  albedo          = gb0.xyz;
+    const float roughness       = gb0.w;
+    const vec3  positionWorld   = gb1.xyz;
+    const float metallic        = gb1.w;
+    const vec3  normalWorld     = gb2.xyz;
 
     // material
-    const float metallic = 0.7;
-    const float roughness = 0.2;
     const float ao = 0.01;
 
     //--------------------------------------------------------------------------------------

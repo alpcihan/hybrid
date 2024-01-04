@@ -88,9 +88,14 @@ void main()  {
       return;
     } 
 
+    // material
+    const vec3 albedo = vec3(0.8);
+    const float roughness = 0.2;
+    const float metallic = 0.8;
+
     // output
-    gl_FragDepth = linearToZDepth(depthToEyeZ(depth, ray.direction));
-    gbuffer0.xyz = vec3(0.8);
-    gbuffer1.xyz = positionWorld;
-    gbuffer2.xyz = normalWorld;
+    gl_FragDepth    = linearToZDepth(depthToEyeZ(depth, ray.direction));
+    gbuffer0        = vec4(albedo, roughness);
+    gbuffer1        = vec4(positionWorld, metallic);
+    gbuffer2.xyz    = normalWorld;
 }
