@@ -15,6 +15,10 @@
 const int   RAY_MARCH_MAX_ITERATION     = 255;
 const float RAY_MARCH_HIT_DISTANCE      = 0.001;
 
+const vec3 albedos[6] = {
+   vec3(0.9), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1), vec3(1,1,0), vec3(1,0,1) 
+};
+
 vec2 minx(vec2 v1, vec2 v2) {
 	return (v1.x<v2.x) ? v1 : v2;
 }
@@ -25,22 +29,23 @@ vec2 map(in vec3 p) {
     float d = MAX_FLOAT;
 
     // spheres
-    const float md = 1; 
-    vec3 q0 = p; //q0 = mod(p, md) - md * 0.5;
-    q0 += vec3(0,0,-1);
-    res = minx(res, vec2(sdSphere(q0, 0.15), 0));
+    vec3 q0 = p + vec3(-1, -0.5, -1); 
+    res = minx(res, vec2(sdSphere(q0, 0.15), 1));
 
-    // box
-    vec3 q1 = p;
-    q1 += vec3(1,0,0);
-    q1.xz *= rot2D(_time);
-    //q1.yz *= rot2D(0.2);
-    res = minx(res, vec2(sdRoundBox(q1, vec3(0.5), 0.01), 1));
-    //d = smin(d, sdRoundBox(q1, vec3(0.5), 0.01), 0.3);
+    vec3 q1 = p + vec3(1, -0.5, -1);
+    res = minx(res, vec2(sdSphere(q1, 0.15), 2));
+
+    vec3 q2 = p + vec3(-1, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q2, 0.15), 3));
+
+    vec3 q3 = p + vec3(1, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q3, 0.15), 4));
+
+    vec3 q4 = p + vec3(0, 0, -1.5);
+    res = minx(res, vec2(sdSphere(q4, 0.5), 0));
 
     // ground
-    //d = smin(d, sdZPlane(p, -0.4), 0.1);
-    res = minx(res, vec2(sdZPlane(p, -0.4), 2));
+    res = minx(res, vec2(sdZPlane(p, -0.4), 0));
 
     return res;
 }
@@ -62,9 +67,9 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
         vec2 res = map(p);
         if (res.x < RAY_MARCH_HIT_DISTANCE) {
             position       = p;
-            mat.albedo     = vec3(1,0,0);
-            mat.roughness  = 0.7;
-            mat.metallic   = 0.2;
+            mat.albedo     = albedos[int(res.y)];
+            mat.roughness  = 1;
+            mat.metallic   = 0.1;
 
             return depth;
         }

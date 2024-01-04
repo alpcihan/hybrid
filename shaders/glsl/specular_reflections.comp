@@ -49,8 +49,8 @@ void main() {
     // create specular reflection ray
     const vec3 viewPos      = (inverse(_view)*vec4(0,0,0,1)).xyz;
     const vec3 toSurface    = normalize(positionWorld - viewPos);
-    const vec3 rayDir       = normalize(reflect(toSurface, normalWorld));
-    Ray ray = createRay(viewPos + rayDir * 0.0001, rayDir);
+    const vec3 rayDir       = normalize(reflect(toSurface, normalize(normalWorld)));
+    Ray ray = createRay(viewPos + rayDir, rayDir);
 
     // ray march
     hybrid_PBRMaterial targetMat;
@@ -80,5 +80,5 @@ void main() {
                 targetNormalWorld,                      // normal world
                 viewPos);                               // view pos
 
-    imageStore(_specularReflectionMap, id, vec4(targetMat.albedo / depth,1));
+    imageStore(_specularReflectionMap, id, vec4(Lo,1));
 }
