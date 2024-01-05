@@ -13,7 +13,7 @@
 //--------------------------------------------------------------------------------------
 HYBRID_CORE_GBUFFER_SAMPLER
 
-layout(set = 1, binding = 3 ) readonly buffer shadowStorage{
+layout(set = 1, binding = 3) readonly buffer shadowStorage{
     float shadowMap[];
 };
 //--------------------------------------------------------------------------------------

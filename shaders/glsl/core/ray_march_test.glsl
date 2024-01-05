@@ -15,8 +15,8 @@
 const int   RAY_MARCH_MAX_ITERATION     = 255;
 const float RAY_MARCH_HIT_DISTANCE      = 0.001;
 
-const vec3 albedos[6] = {
-   vec3(0.9), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1), vec3(1,1,0), vec3(1,0,1) 
+const vec3 RAY_MARCH_ALBEDOS[6] = {
+   vec3(0.9), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1), vec3(1,0,1), vec3(1,1,0)
 };
 
 vec2 minx(vec2 v1, vec2 v2) {
@@ -29,23 +29,33 @@ vec2 map(in vec3 p) {
     float d = MAX_FLOAT;
 
     // spheres
-    vec3 q0 = p + vec3(-1.5, -0.5, -1); 
-    res = minx(res, vec2(sdSphere(q0, 0.25), 1));
+    float b = 3;
+    float s0 = 0.5;
+    vec3 q0 = p + vec3(0, -0.75, -4); 
 
-    vec3 q1 = p + vec3(1.5, -0.5, -1);
-    res = minx(res, vec2(sdSphere(q1, 0.25), 2));
+    vec3 rou = round(q0/s0);
+    q0.xy = q0.xy - s0*clamp(rou.xy,-b,b);
 
-    vec3 q2 = p + vec3(-1.5, -0.5, -2);
-    res = minx(res, vec2(sdSphere(q2, 0.25), 3));
+    rou += ceil(b/2) + 1;
+    res = minx(res, vec2(sdSphere(q0, 0.2), rou.x * (b*2+1) + rou.y));
 
-    vec3 q3 = p + vec3(1.5, -0.5, -2);
-    res = minx(res, vec2(sdSphere(q3, 0.25), 4));
+    vec3 q1 = p + vec3(-1.5, -0.5, -1);
+    res = minx(res, vec2(sdSphere(q1, 0.25), -6));
 
-    vec3 q4 = p + vec3(0, 0, -1.5);
-    res = minx(res, vec2(sdSphere(q4, 0.5), 0));
+    vec3 q2 = p + vec3(1.5, -0.5, -1);
+    res = minx(res, vec2(sdSphere(q2, 0.25), -3));
+
+    vec3 q3 = p + vec3(-1.5, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q3, 0.25), -4));
+
+    vec3 q4 = p + vec3(1.5, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q4, 0.25), -5));
+
+    vec3 q5 = p + vec3(0, 0, -1.5);
+    res = minx(res, vec2(sdSphere(q5, 0.5), -1));
 
     // ground
-    res = minx(res, vec2(sdZPlane(p, -0.5), 0));
+    res = minx(res, vec2(sdZPlane(p, -0.5), -1));
 
     return res;
 }
@@ -67,9 +77,15 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
         vec2 res = map(p);
         if (res.x < RAY_MARCH_HIT_DISTANCE) {
             position       = p;
-            mat.albedo     = albedos[int(res.y)];
-            mat.roughness  = 0.5;
-            mat.metallic   = 0.3;
+            if(res.y > -1) {
+                mat.albedo     = vec3(1,0,0);
+                mat.roughness  = (mod(res.y, 7)) / 7;
+                mat.metallic   = (res.y / 7) / 7;
+            } else {
+                mat.albedo     = RAY_MARCH_ALBEDOS[abs(int(res.y)+1)];
+                mat.roughness  = 0.7;
+                mat.metallic   = 0.7;
+            }
 
             return depth;
         }
