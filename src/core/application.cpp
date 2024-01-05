@@ -33,7 +33,7 @@ void Application::run() {
         const float deltaTime = timer.elapsed();
         // update time
         {
-            std::cout << "FPS: " << 1 / deltaTime << "\n";
+            // std::cout << "FPS: " << 1 / deltaTime << "\n";
             Time::_update(deltaTime);
             timer.reset();
         }
@@ -41,7 +41,7 @@ void Application::run() {
         m_cameraController->update(deltaTime);
         renderPipeline->render(*m_camera);
 
-        // std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 

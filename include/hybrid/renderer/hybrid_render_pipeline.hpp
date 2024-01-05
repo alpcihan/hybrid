@@ -29,7 +29,6 @@ private:
     // scene maps
     std::vector<tga::Texture> m_gBuffer;
     tga::Buffer m_shadowMap;
-    tga::Texture m_specularReflectionTex;
     std::vector<tga::Texture> m_specularReflectionImgPyramid;
 
     // uniform buffer
@@ -42,6 +41,7 @@ private:
     tga::RenderPass m_customGeometryPass;
     tga::ComputePass m_shadowPass;
     tga::ComputePass m_specularReflectionPass;
+    tga::ComputePass m_specularReflectionImgPyramidPass;
     tga::RenderPass m_lightingPass;
 
     // input sets
@@ -49,6 +49,8 @@ private:
     std::vector<tga::InputSet> m_customGeometryPassInputSets;
     std::vector<tga::InputSet> m_shadowInputSets;
     std::vector<tga::InputSet> m_specularReflectionPassInputSets;
+    std::vector<tga::InputSet> m_specularReflectionImgPyramidPassInputSets;
+    std::vector<tga::InputSet> m_specularReflectionImgPyramidPassMipMapInputSets;
     std::vector<tga::InputSet> m_lightingPassInputSets;
 
 private:
