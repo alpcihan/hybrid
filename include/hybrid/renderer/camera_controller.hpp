@@ -6,8 +6,8 @@ namespace hybrid {
 
 class CameraController {
 public: 
-    float speed = 1;
-    float turnSpeed = 45;
+    float speed = 3;
+    float turnSpeed = 90;
 
 public:
     CameraController(Camera& camera);
