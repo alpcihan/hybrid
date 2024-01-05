@@ -103,8 +103,7 @@ void main() {
 
     const vec3 worldPos = gb1.xyz;
     const vec3 worldNormal = gb2.xyz;
-    vec3 epsilon = worldNormal * 0.0001;
-    vec3 rayOrigin = worldPos+epsilon;
+    vec3 rayOrigin = worldPos;
     
     float shadowCoeff = 1.0;
 
@@ -118,7 +117,8 @@ void main() {
 
         float t_light = distance(_lights[i].position , rayOrigin);
 
-        Ray ray = createRay(rayOrigin, rayDirection);
+        vec3 epsilon = rayDirection * 0.001; //TODO: Magic number
+        Ray ray = createRay(rayOrigin + epsilon, rayDirection);
         shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
     }    
     

@@ -62,7 +62,7 @@ void main() {
     vec3 color = Lo + ambient * albedo * ao;
 
     //shadow
-	  uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
+	uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
     float shadowCoeff = shadowMap[shadowIdx];
     
     color *= shadowCoeff;
