@@ -2,6 +2,7 @@
 
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
+#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
 
@@ -18,6 +19,7 @@ private:
         alignas(16) glm::vec4 zBufferParams;
         alignas(16) glm::vec4 projectionParams;
         float time;
+        glm::mat4 model; //to change
     };
 
 private:
@@ -34,6 +36,18 @@ private:
     tga::StagingBuffer m_uniformDataStage;
     tga::Buffer m_uniformBuffer;
 
+    //scene data
+    std::vector<hybrid::Vertex> m_vertexList;
+    std::vector<uint32_t> m_indexList;
+    tga::TextureBundle m_diffuseColorTex;
+
+    //scene buffers TO CHANGE
+    tga::StagingBuffer m_vertexBufferStage;
+    tga::Buffer m_vertexBuffer;
+    tga::StagingBuffer m_indexBufferStage;
+    tga::Buffer m_indexBuffer;
+
+
     // passes
     tga::RenderPass m_geometryPass;
     tga::RenderPass m_customGeometryPass;
@@ -46,6 +60,7 @@ private:
 
 private:
     void _init();
+    void _loadSceneData(); //to change
     void _initBuffers();
     void _initPasses();
     void _updateUniformData(const Camera& camera);

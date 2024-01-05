@@ -2,6 +2,7 @@
 
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
+#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
 
@@ -20,7 +21,9 @@ void HybridRenderPipeline::render(const Camera& camera) {
                 // 1 - geometry pass
                 .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
                 .bindInputSet(m_geometryPassInputSets[0])
-                .draw(3, 0)
+                .bindVertexBuffer(m_vertexBuffer)
+                .bindIndexBuffer(m_indexBuffer)
+                .drawIndexed(m_indexList.size(), 0, 0)
 
                 // 2 - custom geometry pass
                 .setRenderPass(m_customGeometryPass, 0)
@@ -42,8 +45,20 @@ void HybridRenderPipeline::render(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_init() {
+    _loadSceneData();
     _initBuffers();
     _initPasses();
+}
+
+void HybridRenderPipeline::_loadSceneData() {
+    tga::Obj object = tga::loadObj("C:/TUM/Study/GPU_Pro/man/man.obj");
+    // convert tga::Vertex to hybrid::Vertex
+    for (auto v : object.vertexBuffer) {
+        m_vertexList.push_back(hybrid::Vertex(v.position, v.normal, v.uv));
+    }
+    m_indexList = object.indexBuffer;
+    m_diffuseColorTex = tga::loadTexture("C:/TUM/Study/GPU_Pro/man/man_diffuse.png",
+                                         tga::Format::r8g8b8a8_srgb, tga::SamplerMode::linear, m_tgai);
 }
 
 void HybridRenderPipeline::_initBuffers() {
@@ -58,19 +73,29 @@ void HybridRenderPipeline::_initBuffers() {
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
     m_uniformData = static_cast<UniformData *>(m_tgai.getMapping(m_uniformDataStage));
     m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData), m_uniformDataStage});
+
+    // init scene buffers (vertexBuffer and indexBuffer)
+    size_t vertexListSize = m_vertexList.size() * sizeof(hybrid::Vertex);
+    m_vertexBufferStage = m_tgai.createStagingBuffer({vertexListSize, tga::memoryAccess(m_vertexList)});
+    m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex, vertexListSize, m_vertexBufferStage});
+
+    size_t indexListSize = m_indexList.size() * sizeof(uint32_t);
+    m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_indexList)});
+    m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index, indexListSize, m_indexBufferStage});
 }
 
 void HybridRenderPipeline::_initPasses() {
     // 0 - geometry pass
     {
         // shaders
-        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("geometry_vert.spv"), tga::ShaderType::vertex, m_tgai);
-        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("geometry_frag.spv"), tga::ShaderType::fragment, m_tgai);
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("game_object_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("game_object_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
             // S0
-            tga::BindingType::uniformBuffer  // B0: uniform buffer
+            tga::BindingType::uniformBuffer,  // B0: uniform buffer
+            tga::BindingType::sampler         // B1: diffTex buffer
         }}});
 
         // pass
@@ -79,6 +104,7 @@ void HybridRenderPipeline::_initPasses() {
                                         .setClearOperations(tga::ClearOperation::all)
                                         .setPerPixelOperations(tga::CompareOperation::less)
                                         .setRasterizerConfig({tga::FrontFace::counterclockwise, tga::CullMode::back})
+                                        .setVertexLayout(hybrid::Vertex::layout())
                                         .setInputLayout(inputLayout)
                                         .setRenderTarget(m_gBuffer));
 
@@ -87,6 +113,7 @@ void HybridRenderPipeline::_initPasses() {
             m_tgai.createInputSet({m_geometryPass,
                                    {
                                        {m_uniformBuffer, 0},
+                                       {m_diffuseColorTex, 1}
                                    },
                                    0}),
         };
@@ -99,8 +126,10 @@ void HybridRenderPipeline::_initPasses() {
     // 1 - custom geometry pass (TODO: set at client side)
     {
         // shaders (TODO: reuse)
-        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
-        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("ray_march_test_frag.spv"), tga::ShaderType::fragment, m_tgai);
+        tga::Shader vs =
+            tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs =
+            tga::loadShader(HYBRID_SHADER_PATH("ray_march_test_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
@@ -133,7 +162,8 @@ void HybridRenderPipeline::_initPasses() {
     // 2 - lighting pass
     {
         // shader
-        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader vs =
+            tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("lighting_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout
@@ -193,6 +223,7 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
     m_uniformData->projectionParams[2] = 0;  // unused
     m_uniformData->projectionParams[3] = 0;  // unused
     m_uniformData->time = Time::getTime();
+    m_uniformData->model = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) * glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change
 }
 
 }  // namespace hybrid
