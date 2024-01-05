@@ -92,10 +92,8 @@ void HybridRenderPipeline::_initResources() {
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
     
-    // shadow map (contains shadow coefficient)
-    auto shadowStaging = m_tgai.createStagingBuffer({sizeof(float)*resX*resY});
-    m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY},shadowStaging});
-    // TODO: free staging buffer
+    // shadow map
+    m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
   
     // specular reflection map
     m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});

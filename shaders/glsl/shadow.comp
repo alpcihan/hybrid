@@ -25,21 +25,8 @@ layout(local_size_x = 32) in;
 layout(local_size_y = 32) in;
 
 //--------------------------------------------------------------------------------------
-// Scene data (Coppy pasted from pbr) TODO: Change this
+// Scene data TODO: Take it from CPU
 //--------------------------------------------------------------------------------------
-struct PointLight {
-    vec3 color;
-    vec3 position;
-
-    float attenuationCoeff; // TODO: add constant and linear term
-};
-
-#define LIGHT_COUNT 3
-const PointLight lights[LIGHT_COUNT] = {
-    {vec3(1), vec3(-0.5,1,2), 5},
-    {vec3(1), vec3(1,0,2),    5},
-    {vec3(1), vec3(-1,0.1,2), 5},
-};
 
 vec3 positions[3] = vec3[](
     vec3(0.0, -0.5,0.0),
@@ -95,15 +82,15 @@ void main() {
     
     float shadowCoeff = 1.0;
 
-    float lightContribution = 1.0 / LIGHT_COUNT;
-    for(uint i = 0; i < LIGHT_COUNT; ++i){
+    float lightContribution = 1.0 / HYBRID_LIGHT_COUNT;
+    for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
         
-        vec3 rayDirection = normalize(lights[i].position - worldPos);
+        vec3 rayDirection = normalize(_lights[i].position - worldPos);
         float rdl = dot(rayDirection,worldNormal);
         
         if(rdl <= 0) continue; // light is behind
 
-        float t_light = distance(lights[i].position , rayOrigin);
+        float t_light = distance(_lights[i].position , rayOrigin);
 
         Ray ray = createRay(rayOrigin, rayDirection);
         shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
