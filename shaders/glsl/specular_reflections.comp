@@ -55,7 +55,7 @@ void main() {
     // ray march
     hybrid_PBRMaterial targetMat;
     vec3 targetPositionWorld;
-    float depth = rayCast(
+    float tHit = rayCast(
                     ray.origin,                         // ray origin
                     ray.direction,                      // ray direction
                     _projectionParams[0],               // near distance
@@ -64,8 +64,8 @@ void main() {
                     targetMat                           // material (out)
     );
 
-    if(depth >= _projectionParams[1]) {
-        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+    if(tHit >= _projectionParams[1]) {
+        imageStore(_specularReflectionMap, id, vec4(0,0,0,MAX_FLOAT)); // TODO: remove this (init the default values at the beginning of the pass)
         return;
     } 
     
@@ -80,5 +80,5 @@ void main() {
                 targetNormalWorld,                      // normal world
                 positionWorld);                         // view pos
 
-    imageStore(_specularReflectionMap, id, vec4(Lo,1));
+    imageStore(_specularReflectionMap, id, vec4(Lo, tHit));
 }
