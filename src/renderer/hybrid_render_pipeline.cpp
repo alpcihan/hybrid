@@ -87,7 +87,7 @@ void HybridRenderPipeline::_initResources() {
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
     
     // specular reflection map
-    m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat});
+    m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
 
     // init uniform buffer
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});

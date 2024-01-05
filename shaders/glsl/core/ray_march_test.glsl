@@ -29,17 +29,17 @@ vec2 map(in vec3 p) {
     float d = MAX_FLOAT;
 
     // spheres
-    vec3 q0 = p + vec3(-1, -0.5, -1); 
-    res = minx(res, vec2(sdSphere(q0, 0.15), 1));
+    vec3 q0 = p + vec3(-1.5, -0.5, -1); 
+    res = minx(res, vec2(sdSphere(q0, 0.25), 1));
 
-    vec3 q1 = p + vec3(1, -0.5, -1);
-    res = minx(res, vec2(sdSphere(q1, 0.15), 2));
+    vec3 q1 = p + vec3(1.5, -0.5, -1);
+    res = minx(res, vec2(sdSphere(q1, 0.25), 2));
 
-    vec3 q2 = p + vec3(-1, -0.5, -2);
-    res = minx(res, vec2(sdSphere(q2, 0.15), 3));
+    vec3 q2 = p + vec3(-1.5, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q2, 0.25), 3));
 
-    vec3 q3 = p + vec3(1, -0.5, -2);
-    res = minx(res, vec2(sdSphere(q3, 0.15), 4));
+    vec3 q3 = p + vec3(1.5, -0.5, -2);
+    res = minx(res, vec2(sdSphere(q3, 0.25), 4));
 
     vec3 q4 = p + vec3(0, 0, -1.5);
     res = minx(res, vec2(sdSphere(q4, 0.5), 0));
@@ -68,8 +68,8 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
         if (res.x < RAY_MARCH_HIT_DISTANCE) {
             position       = p;
             mat.albedo     = albedos[int(res.y)];
-            mat.roughness  = 1;
-            mat.metallic   = 0.1;
+            mat.roughness  = 0.5;
+            mat.metallic   = 0.3;
 
             return depth;
         }
