@@ -3,7 +3,7 @@
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
 
-#define IMG_PYRAMID_SIZE 7
+#define IMG_PYRAMID_SIZE 6
 
 namespace hybrid {
 
@@ -131,7 +131,6 @@ void HybridRenderPipeline::_initResources() {
         m_specularReflectionImgPyramid.emplace_back(m_tgai.createTexture(
             {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}
         ));
-        // std::cout << resX / scale << " " << resY / scale << "\n";
     }
 }
 
@@ -308,7 +307,7 @@ void HybridRenderPipeline::_initPasses() {
     // specular reflections image pyramid pass
     {
         // shader
-        tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("mipmap_cross_bilateral_filter_comp.spv"), tga::ShaderType::compute, m_tgai);
+        tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("mipmap_4x4_filter_comp.spv"), tga::ShaderType::compute, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({
@@ -431,7 +430,7 @@ void HybridRenderPipeline::_initPasses() {
                                    1}),
             m_tgai.createInputSet({m_lightingPass,
                                    {
-                                       {m_specularReflectionImgPyramid[1], 0}
+                                       {m_specularReflectionImgPyramid[0], 0}
                                    },
                                    2}),
 

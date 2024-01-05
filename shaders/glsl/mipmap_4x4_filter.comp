@@ -22,22 +22,38 @@ layout(set = 3, binding = 1, rgba16f) writeonly uniform image2D _target;
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
+const mat4 WEIGHTS = mat4(
+    vec4(0.50, 0.75, 0.75, 0.50),
+    vec4(0.75, 1.00, 1.00, 0.75),
+    vec4(0.75, 1.00, 1.00, 0.75),
+    vec4(0.50, 0.75, 0.75, 0.50)
+);
+
 void main() {
-    // Get the global invocation ID
     const ivec2 id = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    const ivec2 coordSrc = id*2;
+    const ivec2 srcRes = imageSize(_source);
 
-    ivec2 sourceCoords = id * 2;
+    vec4 weightedSum = vec4(0.0);
+    float totalWeight = 0;
 
-    vec4 sampleSum = vec4(0.0);
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            ivec2 offset = ivec2(i, j);
-            const vec4 s = imageLoad(_source, sourceCoords);
-            sampleSum += s;
+    for (int i=-1; i<3; ++i) {
+        for (int j=-1; j<3; ++j) {
+            const ivec2 coord = coordSrc + ivec2(i, j);
+
+            if(coord.x < 0 || coord.y < 0 || coord.x >= srcRes.x || coord.y >= srcRes.y) 
+                continue;
+
+            const float w = WEIGHTS[i+1][j+1];
+
+            const vec4 val = imageLoad(_source, coord);
+            weightedSum += val * w;
+
+            totalWeight += w;
         }
     }
 
-    vec4 averagedSample = sampleSum / 4;
+    vec4 averagedSample = weightedSum / totalWeight;
 
     imageStore(_target, id, averagedSample);
 }
