@@ -3,7 +3,7 @@
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
 
-#define IMG_PYRAMID_SIZE 4
+#define IMG_PYRAMID_SIZE 7
 
 namespace hybrid {
 
@@ -61,6 +61,9 @@ void HybridRenderPipeline::render(const Camera& camera) {
 
     // specular reflection image pyramid
     for(int i = 0; i < IMG_PYRAMID_SIZE-1; i++) {
+    const float pw = pow(2, i+1);
+    const uint32_t mresX = resX / pw;
+    const uint32_t mresY = resY / pw;
     cmdRecorder
         .barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::ComputeShader)
         .setComputePass(m_specularReflectionImgPyramidPass)
@@ -68,7 +71,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .bindInputSet(m_specularReflectionImgPyramidPassInputSets[1])
         .bindInputSet(m_specularReflectionImgPyramidPassInputSets[2])
         .bindInputSet(m_specularReflectionImgPyramidPassMipMapInputSets[i])
-        .dispatch(1, 1, 1);
+        .dispatch((mresX+31)/32, (mresY+31)/32, 1);
     }
 
     // lighting
@@ -126,7 +129,7 @@ void HybridRenderPipeline::_initResources() {
     for(int i=0; i<IMG_PYRAMID_SIZE; ++i) {
         uint32_t scale = std::pow(2,i);
         m_specularReflectionImgPyramid.emplace_back(m_tgai.createTexture(
-            {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat}
+            {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}
         ));
         // std::cout << resX / scale << " " << resY / scale << "\n";
     }
@@ -428,8 +431,7 @@ void HybridRenderPipeline::_initPasses() {
                                    1}),
             m_tgai.createInputSet({m_lightingPass,
                                    {
-                                       {m_specularReflectionImgPyramid[0], 0},
-                                       {m_specularReflectionImgPyramid[IMG_PYRAMID_SIZE-1], 1}
+                                       {m_specularReflectionImgPyramid[1], 0}
                                    },
                                    2}),
 

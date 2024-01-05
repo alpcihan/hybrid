@@ -23,6 +23,21 @@ layout(set = 3, binding = 1, rgba16f) writeonly uniform image2D _target;
 // program
 //--------------------------------------------------------------------------------------
 void main() {
+    // Get the global invocation ID
     const ivec2 id = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-    const ivec2 res = imageSize(_target);
+
+    ivec2 sourceCoords = id * 2;
+
+    vec4 sampleSum = vec4(0.0);
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            ivec2 offset = ivec2(i, j);
+            const vec4 s = imageLoad(_source, sourceCoords);
+            sampleSum += s;
+        }
+    }
+
+    vec4 averagedSample = sampleSum / 4;
+
+    imageStore(_target, id, averagedSample);
 }
