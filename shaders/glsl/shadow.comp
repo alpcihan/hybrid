@@ -8,6 +8,7 @@
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl" //S0
 #include "core/ray.glsl"
+#include "core/ray_march_test.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs
@@ -56,15 +57,30 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 }
 
 
-//returns 1 if there is a hit between light and rayOrigin
-float hitWorld(in Ray r,in float d_light){
-
+bool intersectMesh(in Ray r,in float d_light)
+{
     //triangle intersection
     float t =  triIntersect(r, positions[0],positions[1],positions[2]);
     t= min(d_light,t);
-    //TODO: sdf intersection
-    if(t == d_light) return 0;
-    return 1;
+    if(t == d_light) return false;
+    return true;
+}
+
+bool intersectSdf(in Ray r,in float d_light)
+{
+    vec3 p;                   //place holder (not used)
+    hybrid_PBRMaterial mat;   //place holder (not used)
+    float t = rayCast(r.origin, r.direction, _projectionParams.x, d_light, p, mat);
+    return (t < d_light);
+}
+
+//returns 1 if there is a hit between light and rayOrigin
+float hitWorld(in Ray r,in float d_light)
+{
+    if(intersectSdf(r,d_light))  return 1;
+    if(intersectMesh(r,d_light)) return 1;
+
+    return 0;
 }
 
 void main() {
