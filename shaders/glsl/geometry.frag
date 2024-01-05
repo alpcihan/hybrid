@@ -31,5 +31,5 @@ void main() {
     // output
     gbuffer0        = vec4(albedo,roughness);
     gbuffer1        = vec4(frag.positionWorld,metallic);
-    gbuffer2.xyz    = vec3(frag.normalWorld);
+    gbuffer2        = vec4(frag.normalWorld, HYBRID_OBJECT_FLAG);
 }
