@@ -13,6 +13,9 @@
 //--------------------------------------------------------------------------------------
 HYBRID_CORE_GBUFFER_SAMPLER
 
+layout(set = 1, binding = 3 ) readonly buffer shadowStorage{
+    float shadowMap[];
+};
 //--------------------------------------------------------------------------------------
 // inputs 
 //--------------------------------------------------------------------------------------
@@ -34,6 +37,9 @@ void main() {
     const vec4 gb0  = texture(gbuffer0, uv);
     const vec4 gb1  = texture(gbuffer1, uv);
     const vec4 gb2  = texture(gbuffer2, uv);
+
+    ivec2 texCoords = ivec2(_projectionParams.zw * uv);
+    ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w);
     
     const vec3  albedo          = gb0.xyz;
     const float roughness       = gb0.w;
@@ -54,7 +60,12 @@ void main() {
                 viewPos);
    
     vec3 color = Lo + ambient * albedo * ao;
-	
+
+    //shadow
+	  uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
+    float shadowCoeff = shadowMap[shadowIdx];
+    
+    color *= shadowCoeff;
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
     //--------------------------------------------------------------------------------------
