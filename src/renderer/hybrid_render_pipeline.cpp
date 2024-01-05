@@ -44,7 +44,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .setComputePass(m_shadowPass)
         .bindInputSet(m_shadowInputSets[0])
         .bindInputSet(m_shadowInputSets[1])
-        .dispatch((m_res.first+31)/32,(m_res.second+31)/32,1)
+        .dispatch((resX+31)/32,(resY+31)/32,1)
           
         // specular reflection map
         .setComputePass(m_specularReflectionPass)
