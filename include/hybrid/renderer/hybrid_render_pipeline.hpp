@@ -30,6 +30,7 @@ private:
     std::vector<tga::Texture> m_gBuffer;
     tga::Buffer m_shadowMap;
     tga::Texture m_specularReflectionTex;
+    std::vector<tga::Texture> m_specularReflectionImgPyramid;
 
     // uniform buffer
     UniformData *m_uniformData;

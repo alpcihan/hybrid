@@ -103,11 +103,22 @@ void HybridRenderPipeline::_initResources() {
     // init uniform buffer
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
     m_uniformData = static_cast<UniformData *>(m_tgai.getMapping(m_uniformDataStage));
-    m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData), m_uniformDataStage});
+    m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData)});
+
+    // init specular reflection image pyramid (TODO: add min size check)
+    const size_t imgPyramidSize = 4;
+    m_specularReflectionImgPyramid.reserve(imgPyramidSize);
+    for(int i=1; i<=imgPyramidSize; ++i) {
+        uint32_t scale = std::pow(2,i);
+        m_specularReflectionImgPyramid.emplace_back(m_tgai.createTexture(
+            {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat}
+        ));
+        // std::cout << resX / scale << " " << resY / scale << "\n";
+    }
 }
 
 void HybridRenderPipeline::_initPasses() {
-    // 0 - geometry pass
+    // geometry pass
     {
         // shaders
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("geometry_vert.spv"), tga::ShaderType::vertex, m_tgai);
@@ -142,7 +153,7 @@ void HybridRenderPipeline::_initPasses() {
         m_tgai.free(fs);
     }
 
-    // 1 - custom geometry pass (TODO: set at client side)
+    // custom geometry pass (TODO: set at client side)
     {
         // shaders (TODO: reuse)
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
@@ -176,7 +187,7 @@ void HybridRenderPipeline::_initPasses() {
         m_tgai.free(fs);
     }
   
-    //shadow pass
+    // shadow pass
     {
         //shader
         tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("shadow_comp.spv"),tga::ShaderType::compute, m_tgai);
@@ -190,10 +201,10 @@ void HybridRenderPipeline::_initPasses() {
                 },
                 {   
                     //S1
-                    {tga::BindingType::sampler, 1},  // B0: gbuffer0
-                    {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                    {tga::BindingType::sampler, 1},  // B2: gbuffer2
-                    {tga::BindingType::storageBuffer}// B3: shadowMap
+                    {tga::BindingType::sampler},        // B0: gbuffer0
+                    {tga::BindingType::sampler},        // B1: gbuffer1
+                    {tga::BindingType::sampler},        // B2: gbuffer2
+                    {tga::BindingType::storageBuffer}   // B3: shadowMap
                 },
             }  
         );
@@ -224,8 +235,61 @@ void HybridRenderPipeline::_initPasses() {
 
     // specular reflections pass
     {
-         // shader
+        // shader
         tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("specular_reflections_comp.spv"), tga::ShaderType::compute, m_tgai);
+
+        // input layout (TODO: reuse)
+        tga::InputLayout inputLayout({
+            {
+                // S0
+                tga::BindingType::uniformBuffer  // B0: uniform buffer
+            },
+            {
+                // S1
+                {tga::BindingType::sampler},    // B0: gbuffer0
+                {tga::BindingType::sampler},    // B1: gbuffer1
+                {tga::BindingType::sampler}     // B2: gbuffer2
+            },
+            {
+                // S2
+                tga::BindingType::storageImage
+            }
+        });
+
+        // pass
+        m_specularReflectionPass = m_tgai.createComputePass({cs, inputLayout});
+
+        // input sets
+        m_specularReflectionPassInputSets = {
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_uniformBuffer, 0},
+                                   },
+                                   0}),
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_gBuffer[0], 0},
+                                       {m_gBuffer[1], 1},
+                                       {m_gBuffer[2], 2},
+                                   },
+                                   1}),
+            m_tgai.createInputSet({m_specularReflectionPass,
+                                   {
+                                       {m_specularReflectionTex, 0},
+                                   },
+                                   2}),
+
+        };
+
+        // free
+        m_tgai.free(cs);
+    }
+    
+    /*
+    // specular reflections image pyramid pass
+    {
+        // shader
+        tga::Shader cs = tga::loadShader(HYBRID_SHADER_PATH("mipmap_cross_bilateral_filter_compy.spv"), tga::ShaderType::compute, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({
@@ -273,7 +337,8 @@ void HybridRenderPipeline::_initPasses() {
         // free
         m_tgai.free(cs);
     }
-  
+    */
+
     // lighting pass
     {
         // shader
@@ -284,18 +349,18 @@ void HybridRenderPipeline::_initPasses() {
         tga::InputLayout inputLayout({
             {
                 // S0
-                tga::BindingType::uniformBuffer  // B0: uniform buffer
+                tga::BindingType::uniformBuffer     // B0: uniform buffer
             },
             {
                 // S1
-                {tga::BindingType::sampler, 1},  // B0: gbuffer0
-                {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                {tga::BindingType::sampler, 1},  // B2: gbuffer2
-                {tga::BindingType::storageBuffer}// B3: shadowMap 
+                {tga::BindingType::sampler},        // B0: gbuffer0
+                {tga::BindingType::sampler},        // B1: gbuffer1
+                {tga::BindingType::sampler},        // B2: gbuffer2
+                {tga::BindingType::storageBuffer}   // B3: shadowMap 
             },
             {
                 // S2
-                {tga::BindingType::sampler, 1},  // B0: specular reflection map
+                {tga::BindingType::sampler, 1},     // B0: specular reflection map
             },
         });
 
