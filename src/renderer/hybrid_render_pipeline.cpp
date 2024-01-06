@@ -83,6 +83,14 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .bindInputSet(m_lightingPassInputSets[2])
         .draw(3, 0);
     
+    // skybox pass
+    cmdRecorder
+        .setRenderPass(m_skyboxPass, 0)
+        .bindInputSet(m_skyboxPassInputSets[0])
+        .bindInputSet(m_skyboxPassInputSets[1])
+        .draw(3, 0);
+
+    // present pass
     cmdRecorder
         .setRenderPass(m_scenePresentPass, nextFrame)
         .bindInputSet(m_scenePresentPassInputSets[0])
@@ -143,7 +151,7 @@ void HybridRenderPipeline::_initResources() {
 
     // hdri
     std::cout << "loading hdri...\n"; 
-    m_hdri = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
+    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
 }
 
 void HybridRenderPipeline::_initPasses() {
@@ -303,7 +311,7 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_hdri,       4}
+                                       {m_skybox,     4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_specularReflectionPass,
@@ -441,7 +449,7 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_hdri,       4}
+                                       {m_skybox,     4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_lightingPass,
@@ -450,6 +458,59 @@ void HybridRenderPipeline::_initPasses() {
                                    },
                                    2}),
 
+        };
+
+        // free
+        m_tgai.free(vs);
+        m_tgai.free(fs);
+    }
+
+    // skybox pass
+    {
+        // shader
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("skybox_frag.spv"), tga::ShaderType::fragment, m_tgai);
+
+        // input layout (TODO: reuse)
+        tga::InputLayout inputLayout({
+            {
+                // S0
+                tga::BindingType::uniformBuffer     // B0: uniform buffer
+            },
+            {
+                // S1
+                {tga::BindingType::sampler},        // B0: gbuffer0
+                {tga::BindingType::sampler},        // B1: gbuffer1
+                {tga::BindingType::sampler},        // B2: gbuffer2
+                {tga::BindingType::storageBuffer},  // B3: shadowMap
+                {tga::BindingType::sampler},        // B4: skybox
+                {tga::BindingType::sampler}         // B5: scene target map
+            }
+        });
+
+        // pass
+        m_skyboxPass =
+            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs}
+                                        .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
+                                        .setInputLayout(inputLayout)
+                                        .setRenderTarget(m_sceneTargetMap));
+
+        // input sets
+        m_skyboxPassInputSets = {
+            m_tgai.createInputSet({m_skyboxPass,
+                                   {
+                                       {m_uniformBuffer, 0},
+                                   },
+                                   0}),
+            m_tgai.createInputSet({m_skyboxPass,
+                                   {
+                                       {m_gBuffer[0],       0},
+                                       {m_gBuffer[1],       1},
+                                       {m_gBuffer[2],       2},
+                                       {m_shadowMap,        3},
+                                       {m_skybox,           4},
+                                   },
+                                   1})
         };
 
         // free
