@@ -68,10 +68,8 @@ bool intersectMesh(in Ray r,in float d_light) //TODO: Rewrite the return logic
 
 bool intersectSdf(in Ray r,in float d_light)
 {
-    vec3 p;                   //place holder (not used)
-    hybrid_PBRMaterial mat;   //place holder (not used)
-    float t = rayCast(r.origin, r.direction, _projectionParams.x, d_light, p, mat);
-    return (t < d_light);
+    float t = shadow(r.origin, r.direction, 0.1 , d_light);
+    return (t < 1.0);
 }
 
 //returns true if there is a hit between light and rayOrigin (shadow)

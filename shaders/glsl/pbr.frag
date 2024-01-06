@@ -54,11 +54,17 @@ void main() {
     //TODO: Check max light count before loop
     uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
     uint shadowVals = shadowMap[shadowIdx];
-
-    vec3 Lo = vec3(0.0);
+    
     vec3 color = vec3(0.0);
 	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
-        Lo += calculatePBRFromActiveSceneLights(
+        //ambient
+        color += ambient * albedo * ao;
+        //shadows
+        uint isShaded = (shadowVals>>i)&1;
+        if(isShaded == 1) continue;
+
+        //Lo
+        color += calculatePBRFromActiveSceneLights(
                 albedo,
                 roughness,
                 metallic,
@@ -66,13 +72,6 @@ void main() {
                 normalWorld,
                 viewPos,
                 i);
-
-        color += ambient * albedo * ao;
-
-        uint isShaded = (shadowVals>>i)&1;
-        if(isShaded == 0){
-            color += Lo;
-        }
     }    
     
     color = color / (color + vec3(1.0));
