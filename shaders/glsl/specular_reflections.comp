@@ -19,7 +19,6 @@ layout(local_size_y = 32) in;
 // resources
 //--------------------------------------------------------------------------------------
 HYBRID_CORE_GBUFFER_SAMPLER
-layout(set = 1, binding = 4) uniform sampler2D _hdri;
 layout(set = 2, binding = 0, rgba16f) writeonly uniform image2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------

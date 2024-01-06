@@ -84,11 +84,11 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .draw(3, 0);
     
     // skybox pass
-    cmdRecorder
-        .setRenderPass(m_skyboxPass, 0)
-        .bindInputSet(m_skyboxPassInputSets[0])
-        .bindInputSet(m_skyboxPassInputSets[1])
-        .draw(3, 0);
+    // cmdRecorder
+    //    .setRenderPass(m_skyboxPass, 0)
+    //    .bindInputSet(m_skyboxPassInputSets[0])
+    //    .bindInputSet(m_skyboxPassInputSets[1])
+    //    .draw(3, 0);
 
     // present pass
     cmdRecorder
@@ -150,8 +150,8 @@ void HybridRenderPipeline::_initResources() {
     }
 
     // hdri
-    std::cout << "loading hdri...\n"; 
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
+    // std::cout << "loading hdri...\n"; 
+    // m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
 }
 
 void HybridRenderPipeline::_initPasses() {
@@ -311,7 +311,7 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_skybox,     4}
+                                       // {m_skybox,     4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_specularReflectionPass,
@@ -449,7 +449,7 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_skybox,     4}
+                                       // {m_skybox,     4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_lightingPass,
@@ -467,6 +467,7 @@ void HybridRenderPipeline::_initPasses() {
 
     // skybox pass
     {
+        /*
         // shader
         tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("skybox_frag.spv"), tga::ShaderType::fragment, m_tgai);
@@ -516,6 +517,7 @@ void HybridRenderPipeline::_initPasses() {
         // free
         m_tgai.free(vs);
         m_tgai.free(fs);
+        */
     }
 
     // present pass

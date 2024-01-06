@@ -21,7 +21,6 @@ layout (location = 0) in vec2 uv;
 layout(set = 1, binding = 3) readonly buffer shadowStorage{
     float shadowMap[];
 };
-layout(set = 1, binding = 4) uniform sampler2D _hdri;
 layout(set = 2, binding = 0) uniform sampler2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------
