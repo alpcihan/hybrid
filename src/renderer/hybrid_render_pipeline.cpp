@@ -132,6 +132,10 @@ void HybridRenderPipeline::_initResources() {
             {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}
         ));
     }
+
+    // hdri
+    std::cout << "loading hdri...\n"; 
+    m_hdri = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
 }
 
 void HybridRenderPipeline::_initPasses() {
@@ -266,7 +270,8 @@ void HybridRenderPipeline::_initPasses() {
                 {tga::BindingType::sampler},        // B0: gbuffer0
                 {tga::BindingType::sampler},        // B1: gbuffer1
                 {tga::BindingType::sampler},        // B2: gbuffer2
-                {tga::BindingType::storageBuffer}   // B3: shadowMap
+                {tga::BindingType::storageBuffer},  // B3: shadowMap
+                {tga::BindingType::sampler}         // B4: skybox
             },
             {
                 // S2
@@ -289,7 +294,8 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[0], 0},
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
-                                       {m_shadowMap,  3}
+                                       {m_shadowMap,  3},
+                                       {m_hdri,       4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_specularReflectionPass,
@@ -397,7 +403,8 @@ void HybridRenderPipeline::_initPasses() {
                 {tga::BindingType::sampler},        // B0: gbuffer0
                 {tga::BindingType::sampler},        // B1: gbuffer1
                 {tga::BindingType::sampler},        // B2: gbuffer2
-                {tga::BindingType::storageBuffer}   // B3: shadowMap 
+                {tga::BindingType::storageBuffer},  // B3: shadowMap 
+                {tga::BindingType::sampler}         // B4: hdri
             },
             {
                 // S2
@@ -425,7 +432,8 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[0], 0},
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
-                                       {m_shadowMap,  3}
+                                       {m_shadowMap,  3},
+                                       {m_hdri,       4}
                                    },
                                    1}),
             m_tgai.createInputSet({m_lightingPass,

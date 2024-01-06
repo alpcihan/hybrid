@@ -1,2 +1,8 @@
 build/
 .vscode/
+
+# assets
+*.[Hh][Dd][Rr]
+*.[Pp][Nn][Gg]
+*.[Jj][Pp][Gg]
+*.[Oo][Bb][Jj]
