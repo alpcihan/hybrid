@@ -77,10 +77,15 @@ void HybridRenderPipeline::render(const Camera& camera) {
     // lighting
     cmdRecorder
         .barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::FragmentShader)
-        .setRenderPass(m_lightingPass, nextFrame)
+        .setRenderPass(m_lightingPass, 0)
         .bindInputSet(m_lightingPassInputSets[0])
         .bindInputSet(m_lightingPassInputSets[1])
         .bindInputSet(m_lightingPassInputSets[2])
+        .draw(3, 0);
+    
+    cmdRecorder
+        .setRenderPass(m_scenePresentPass, nextFrame)
+        .bindInputSet(m_scenePresentPassInputSets[0])
         .draw(3, 0);
 
     // geometry pass
@@ -113,6 +118,9 @@ void HybridRenderPipeline::_initResources() {
     m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
+    
+    // scene target map
+    m_sceneTargetMap = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat});
     
     // shadow map (contains shadow coefficient)
     auto shadowStaging = m_tgai.createStagingBuffer({sizeof(float)*resX*resY});
@@ -415,10 +423,10 @@ void HybridRenderPipeline::_initPasses() {
 
         // pass
         m_lightingPass =
-            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs, m_window}
+            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs}
                                         .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
                                         .setInputLayout(inputLayout)
-                                        .setRenderTarget(m_window));
+                                        .setRenderTarget(m_sceneTargetMap));
 
         // input sets
         m_lightingPassInputSets = {
@@ -442,6 +450,41 @@ void HybridRenderPipeline::_initPasses() {
                                    },
                                    2}),
 
+        };
+
+        // free
+        m_tgai.free(vs);
+        m_tgai.free(fs);
+    }
+
+    // present pass
+    {
+        // shader
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("present_frag.spv"), tga::ShaderType::fragment, m_tgai);
+
+        // input layout
+        tga::InputLayout inputLayout({
+            {
+                // S0
+                tga::BindingType::sampler     // B0: scene target map to present
+            },
+        });
+
+        // pass
+        m_scenePresentPass =
+            m_tgai.createRenderPass(tga::RenderPassInfo{vs, fs, m_window}
+                                        .setRasterizerConfig({tga::FrontFace::clockwise, tga::CullMode::back})
+                                        .setInputLayout(inputLayout)
+                                        .setRenderTarget(m_window));
+
+        // input sets
+        m_scenePresentPassInputSets = {
+            m_tgai.createInputSet({m_scenePresentPass,
+                                   {
+                                       {m_sceneTargetMap, 0},
+                                   },
+                                   0}),
         };
 
         // free
