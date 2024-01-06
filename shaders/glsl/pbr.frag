@@ -14,7 +14,7 @@
 HYBRID_CORE_GBUFFER_SAMPLER
 
 layout(set = 1, binding = 3 ) readonly buffer shadowStorage{
-    float shadowMap[];
+    uint shadowMap[];
 };
 //--------------------------------------------------------------------------------------
 // inputs 
@@ -50,22 +50,31 @@ void main() {
 
     const float ao = 0.01;
     const vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
-	           
-    vec3 Lo = calculatePBRFromActiveSceneLights(
+
+    //TODO: Check max light count before loop
+    uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
+    uint shadowVals = shadowMap[shadowIdx];
+
+    vec3 Lo = vec3(0.0);
+    vec3 color = vec3(0.0);
+	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
+        Lo += calculatePBRFromActiveSceneLights(
                 albedo,
                 roughness,
                 metallic,
                 positionWorld,
                 normalWorld,
-                viewPos);
-   
-    vec3 color = Lo + ambient * albedo * ao;
+                viewPos,
+                i);
 
-    //shadow
-	uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
-    float shadowCoeff = shadowMap[shadowIdx];
+        color += ambient * albedo * ao;
+
+        uint isShaded = (shadowVals>>i)&1;
+        if(isShaded == 0){
+            color += Lo;
+        }
+    }    
     
-    color *= shadowCoeff;
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
     //--------------------------------------------------------------------------------------

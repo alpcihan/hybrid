@@ -44,6 +44,7 @@ layout(set = 1, binding = 1) uniform sampler2D gbuffer1; \
 layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 
 // TODO: this will be replaced with light buffer
+#define HYBRID_MAX_LIGHT_COUNT 32
 #define HYBRID_LIGHT_COUNT 3
 const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
     {vec3(0.5), vec3(   0,    1,      1.5),         1},

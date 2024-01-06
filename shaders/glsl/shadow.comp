@@ -17,7 +17,7 @@
 HYBRID_CORE_GBUFFER_SAMPLER //S1
 
 layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
-    float shadowMap[];
+    uint shadowMap[];
 };
 //--------------------------------------------------------------------------------------
 // kernel
@@ -57,7 +57,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 }
 
 
-bool intersectMesh(in Ray r,in float d_light)
+bool intersectMesh(in Ray r,in float d_light) //TODO: Rewrite the return logic
 {
     //triangle intersection
     float t =  triIntersect(r, positions[0],positions[1],positions[2]);
@@ -74,13 +74,13 @@ bool intersectSdf(in Ray r,in float d_light)
     return (t < d_light);
 }
 
-//returns 1 if there is a hit between light and rayOrigin
-float hitWorld(in Ray r,in float d_light)
+//returns true if there is a hit between light and rayOrigin (shadow)
+bool hitWorld(in Ray r,in float d_light)
 {
-    if(intersectSdf(r,d_light))  return 1;
-    if(intersectMesh(r,d_light)) return 1;
+    if(intersectSdf(r,d_light))  return true;
+    if(intersectMesh(r,d_light)) return true;
 
-    return 0;
+    return false;
 }
 
 void main() {
@@ -97,7 +97,7 @@ void main() {
     const vec4 gb2 = texture(gbuffer2, uv); 
 
     if(gb2.w == HYBRID_BACKGROUND_FLAG){
-        shadowMap[idx] = 1.0; // no shadow
+        shadowMap[idx] = 0; // no shadow
         return;
     }
 
@@ -105,21 +105,28 @@ void main() {
     const vec3 worldNormal = gb2.xyz;
     vec3 rayOrigin = worldPos;
     
-    float shadowCoeff = 1.0;
+    uint shadowCoeff = 0; // each bit is for one light 0 = no shadow 1 = shadow 
 
-    float lightContribution = 1.0 / HYBRID_LIGHT_COUNT;
     for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
         
         vec3 rayDirection = normalize(_lights[i].position - worldPos);
         float rdl = dot(rayDirection,worldNormal);
         
-        if(rdl <= 0) continue; // light is behind
+        if(rdl < 0)
+        {
+            shadowCoeff |= (1 << i); // light is behind
+            continue; // light is behind
+        }
 
         float t_light = distance(_lights[i].position , rayOrigin);
 
-        vec3 epsilon = rayDirection * 0.001; //TODO: Magic number
+        vec3 epsilon = rayDirection * 0.01; //TODO: Magic number
         Ray ray = createRay(rayOrigin + epsilon, rayDirection);
-        shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
+
+        if(hitWorld(ray, t_light)){
+            shadowCoeff |= (1 << i); // shadow
+        }
+
     }    
     
     shadowMap[idx] = shadowCoeff;

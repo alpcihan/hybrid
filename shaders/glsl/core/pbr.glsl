@@ -55,7 +55,8 @@ vec3 calculatePBRFromActiveSceneLights(
     float metallic,
     in vec3 positionWorld,
     in vec3 normalWorld,
-    in vec3 viewPos
+    in vec3 viewPos,
+    in int lightIdx
 ) {
     vec3 N = normalize(normalWorld);
     vec3 V = normalize(viewPos - positionWorld);
@@ -63,34 +64,31 @@ vec3 calculatePBRFromActiveSceneLights(
     vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 	           
-    vec3 Lo = vec3(0.0);
+    // radiance
+    const vec3 toLight = _lights[lightIdx].position - positionWorld;
+    const vec3 L = normalize(toLight);
+    const vec3 H = normalize(V + L);
+    float distance    = length(toLight);
+    float attenuation = 1.0 / (pow(distance, _lights[lightIdx].attenuationCoeff));
+    vec3 radiance     = _lights[lightIdx].color * attenuation;        
+        
+    // brdf
+    float NDF = distributionGGX(N, H, roughness);        
+    float G   = geometrySmith(N, V, L, roughness);      
+    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+        
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;	  
+        
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular     = numerator / denominator;  
+            
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(N, L), 0.0);                
+    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;  
 
-    for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i) {
-        // radiance
-        const vec3 toLight = _lights[i].position - positionWorld;
-        const vec3 L = normalize(toLight);
-        const vec3 H = normalize(V + L);
-        float distance    = length(toLight);
-        float attenuation = 1.0 / (pow(distance, _lights[i].attenuationCoeff));
-        vec3 radiance     = _lights[i].color * attenuation;        
-            
-        // brdf
-        float NDF = distributionGGX(N, H, roughness);        
-        float G   = geometrySmith(N, V, L, roughness);      
-        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-            
-        vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
-        kD *= 1.0 - metallic;	  
-            
-        vec3 numerator    = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular     = numerator / denominator;  
-                
-        // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);                
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  
-    }
 
     return Lo;
 }
