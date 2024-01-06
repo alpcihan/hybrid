@@ -424,8 +424,7 @@ void HybridRenderPipeline::_initPasses() {
             },
             {
                 // S2
-                {tga::BindingType::sampler,},       // B0: specular reflection map
-                {tga::BindingType::sampler}         // B1: specular reflection pyramid
+                {tga::BindingType::sampler, IMG_PYRAMID_SIZE}, // B0: specular reflection image pyramid
             },
         });
 
@@ -437,12 +436,18 @@ void HybridRenderPipeline::_initPasses() {
                                         .setRenderTarget(m_sceneTargetMap));
 
         // input sets
-        m_lightingPassInputSets = {
+        m_lightingPassInputSets.reserve(3);
+
+        // S0
+        m_lightingPassInputSets.emplace_back( 
             m_tgai.createInputSet({m_lightingPass,
                                    {
                                        {m_uniformBuffer, 0},
                                    },
-                                   0}),
+                                   0}));
+
+        // S1
+        m_lightingPassInputSets.emplace_back(
             m_tgai.createInputSet({m_lightingPass,
                                    {
                                        {m_gBuffer[0], 0},
@@ -451,14 +456,18 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_shadowMap,  3},
                                        // {m_skybox,     4}
                                    },
-                                   1}),
-            m_tgai.createInputSet({m_lightingPass,
-                                   {
-                                       {m_specularReflectionImgPyramid[0], 0}
-                                   },
-                                   2}),
+                                   1}));
 
-        };
+        // S2
+        std::vector<tga::Binding> bindingsSet2;
+        bindingsSet2.reserve(IMG_PYRAMID_SIZE);
+        for(int i = 0; i < IMG_PYRAMID_SIZE; i++) 
+            bindingsSet2.emplace_back(m_specularReflectionImgPyramid[i], 0, i);
+
+        m_lightingPassInputSets.emplace_back(
+            m_tgai.createInputSet({m_lightingPass,
+                                   bindingsSet2,
+                                   2}));
 
         // free
         m_tgai.free(vs);

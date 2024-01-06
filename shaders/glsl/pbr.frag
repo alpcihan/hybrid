@@ -21,7 +21,7 @@ layout (location = 0) in vec2 uv;
 layout(set = 1, binding = 3) readonly buffer shadowStorage{
     float shadowMap[];
 };
-layout(set = 2, binding = 0) uniform sampler2D _specularReflectionMap;
+layout(set = 2, binding = 0) uniform sampler2D _specularReflectionPyramid[];
 
 //--------------------------------------------------------------------------------------
 // outputs
@@ -47,7 +47,6 @@ void main() {
     const vec3  positionWorld   = gb1.xyz;
     const float metallic        = gb1.w;
     const vec3  normalWorld     = gb2.xyz;
-    const vec4  reflectionMap   = texture(_specularReflectionMap, uv);
 
     const float ao = 0.01;
     const vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
