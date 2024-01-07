@@ -82,7 +82,7 @@ void main() {
         inReflect = texture(_specularReflectionPyramid[pyramidIdx_i],   uv);
     }
 
-    Lo = calculatePBRLo(
+    Lo += calculatePBRLo(
                 albedo,
                 roughness,
                 metallic,
