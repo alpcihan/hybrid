@@ -49,7 +49,41 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 //--------------------------------------------------------------------------------------
 // pbr lighting functions | https://learnopengl.com/PBR/Lighting
 //--------------------------------------------------------------------------------------
-vec3 calculatePBRFromActiveSceneLights(
+vec3 calculatePBRLo(
+    in vec3 albedo,
+    float roughness,
+    float metallic,
+    
+    in vec3 N,              // normal world
+    in vec3 V,              // surface to view
+
+    in vec3 radiance,       // radiance
+    in vec3 L               // surface to light
+) {
+    const vec3 F0   = mix(vec3(0.04), albedo, metallic);
+    const vec3 H    = normalize(V + L);      
+            
+    // brdf
+    float NDF = distributionGGX(N, H, roughness);        
+    float G   = geometrySmith(N, V, L, roughness);      
+    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+            
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;	  
+            
+    vec3  numerator     = NDF * G * F;
+    float denominator   = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3  specular      = numerator / denominator;  
+                
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(N, L), 0.0);   
+
+    // return Lo
+    return (kD * albedo / PI + specular) * radiance * NdotL; 
+}
+
+vec3 calculatePBRLoFromSceneLights(
     in vec3 albedo,
     float roughness,
     float metallic,
@@ -57,39 +91,19 @@ vec3 calculatePBRFromActiveSceneLights(
     in vec3 normalWorld,
     in vec3 viewPos
 ) {
-    vec3 N = normalize(normalWorld);
-    vec3 V = normalize(viewPos - positionWorld);
-
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-	           
+    vec3 V = normalize(viewPos - positionWorld);     
     vec3 Lo = vec3(0.0);
 
-    for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i) {
-        // radiance
-        const vec3 toLight = _lights[i].position - positionWorld;
-        const vec3 L = normalize(toLight);
-        const vec3 H = normalize(V + L);
-        float distance    = length(toLight);
-        float attenuation = 1.0 / (pow(distance, _lights[i].attenuationCoeff));
-        vec3 radiance     = _lights[i].color * attenuation;        
-            
-        // brdf
-        float NDF = distributionGGX(N, H, roughness);        
-        float G   = geometrySmith(N, V, L, roughness);      
-        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-            
-        vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
-        kD *= 1.0 - metallic;	  
-            
-        vec3 numerator    = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-        vec3 specular     = numerator / denominator;  
-                
-        // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);                
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  
+    for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i) {            
+        Lo += calculatePBRLo(albedo,
+                             roughness,
+                             metallic,
+                             normalWorld,
+                             V,
+                             _lights[i].color,
+                             normalize(_lights[i].position - positionWorld)
+        );
+
     }
 
     return Lo;

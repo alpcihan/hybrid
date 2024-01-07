@@ -72,7 +72,7 @@ void main() {
     // get normal (TODO: only if sdf)
     const vec3 targetNormalWorld = sdfNormal(targetPositionWorld);
 
-    vec3 Lo = calculatePBRFromActiveSceneLights(
+    vec3 Lo = calculatePBRLoFromSceneLights(
                 targetMat.albedo,                       // albedo
                 targetMat.roughness,                    // roughness
                 targetMat.metallic,                     // metallic

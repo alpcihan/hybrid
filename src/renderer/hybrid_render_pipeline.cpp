@@ -412,7 +412,7 @@ void HybridRenderPipeline::_initPasses() {
         tga::InputLayout inputLayout({
             {
                 // S0
-                tga::BindingType::uniformBuffer     // B0: uniform buffer
+                {tga::BindingType::uniformBuffer}     // B0: uniform buffer
             },
             {
                 // S1
@@ -424,7 +424,8 @@ void HybridRenderPipeline::_initPasses() {
             },
             {
                 // S2
-                {tga::BindingType::sampler, IMG_PYRAMID_SIZE}, // B0: specular reflection image pyramid
+                {tga::BindingType::uniformBuffer},              // B0: specular reflection image pyramid size
+                {tga::BindingType::sampler, IMG_PYRAMID_SIZE},  // B1: specular reflection image pyramid
             },
         });
 
@@ -460,9 +461,16 @@ void HybridRenderPipeline::_initPasses() {
 
         // S2
         std::vector<tga::Binding> bindingsSet2;
-        bindingsSet2.reserve(IMG_PYRAMID_SIZE);
-        for(int i = 0; i < IMG_PYRAMID_SIZE; i++) 
-            bindingsSet2.emplace_back(m_specularReflectionImgPyramid[i], 0, i);
+        bindingsSet2.reserve(IMG_PYRAMID_SIZE + 1); 
+
+        int                 pyramidSize = IMG_PYRAMID_SIZE;
+        tga::StagingBuffer  pyramidSizeStage = m_tgai.createStagingBuffer({sizeof(int), reinterpret_cast<uint8_t*>(std::addressof(pyramidSize))});
+        tga::Buffer         pyramidSizeBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(int), pyramidSizeStage});
+
+        bindingsSet2.emplace_back(pyramidSizeBuffer, 0);    // B0
+
+        for(int i = 0; i < IMG_PYRAMID_SIZE; i++)           // B1 - B 1 + IMG_PYRAMID_SIZE
+            bindingsSet2.emplace_back(m_specularReflectionImgPyramid[i], 1, i);
 
         m_lightingPassInputSets.emplace_back(
             m_tgai.createInputSet({m_lightingPass,
@@ -470,6 +478,7 @@ void HybridRenderPipeline::_initPasses() {
                                    2}));
 
         // free
+        m_tgai.free(pyramidSizeStage);
         m_tgai.free(vs);
         m_tgai.free(fs);
     }
