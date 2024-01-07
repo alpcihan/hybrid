@@ -94,14 +94,18 @@ vec3 calculatePBRLoFromSceneLights(
     vec3 V = normalize(viewPos - positionWorld);     
     vec3 Lo = vec3(0.0);
 
-    for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i) {            
+    for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i) {
+        const vec3 toLight = _lights[i].position - positionWorld;
+        const float attentuation = 1 / pow(length(toLight), _lights[i].attenuationCoeff);
+        const vec3 radiance = _lights[i].color * attentuation;
+
         Lo += calculatePBRLo(albedo,
                              roughness,
                              metallic,
                              normalWorld,
                              V,
-                             _lights[i].color,
-                             normalize(_lights[i].position - positionWorld)
+                             radiance,
+                             normalize(toLight)
         );
 
     }
