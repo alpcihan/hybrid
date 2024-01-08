@@ -6,8 +6,8 @@
 
 namespace hybrid {
 
-HybridRenderPipeline::HybridRenderPipeline(tga::Window& window)
-    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject)
+    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject) {
     _init();
 }
 
@@ -23,7 +23,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
                 .bindInputSet(m_geometryPassInputSets[0])
                 .bindVertexBuffer(m_vertexBuffer)
                 .bindIndexBuffer(m_indexBuffer)
-                .drawIndexed(m_indexList.size(), 0, 0)
+                .drawIndexed(m_gameObject.getIndexList().size(), 0, 0)
 
                 // 2 - custom geometry pass
                 .setRenderPass(m_customGeometryPass, 0)
@@ -45,21 +45,10 @@ void HybridRenderPipeline::render(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_init() {
-    _loadSceneData();
     _initBuffers();
     _initPasses();
 }
 
-void HybridRenderPipeline::_loadSceneData() {
-    tga::Obj object = tga::loadObj("C:/TUM/Study/GPU_Pro/man/man.obj");
-    // convert tga::Vertex to hybrid::Vertex
-    for (auto v : object.vertexBuffer) {
-        m_vertexList.push_back(hybrid::Vertex(v.position, v.normal, v.uv));
-    }
-    m_indexList = object.indexBuffer;
-    m_diffuseColorTex = tga::loadTexture("C:/TUM/Study/GPU_Pro/man/man_diffuse.png",
-                                         tga::Format::r8g8b8a8_srgb, tga::SamplerMode::linear, m_tgai);
-}
 
 void HybridRenderPipeline::_initBuffers() {
     const auto [resX, resY] = Application::get().getScreenResolution();
@@ -75,12 +64,12 @@ void HybridRenderPipeline::_initBuffers() {
     m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData), m_uniformDataStage});
 
     // init scene buffers (vertexBuffer and indexBuffer)
-    size_t vertexListSize = m_vertexList.size() * sizeof(hybrid::Vertex);
-    m_vertexBufferStage = m_tgai.createStagingBuffer({vertexListSize, tga::memoryAccess(m_vertexList)});
+    size_t vertexListSize = m_gameObject.getVertexList().size() * sizeof(hybrid::Vertex);
+    m_vertexBufferStage = m_tgai.createStagingBuffer({vertexListSize, tga::memoryAccess(m_gameObject.getVertexList())});
     m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex, vertexListSize, m_vertexBufferStage});
 
-    size_t indexListSize = m_indexList.size() * sizeof(uint32_t);
-    m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_indexList)});
+    size_t indexListSize = m_gameObject.getIndexList().size() * sizeof(uint32_t);
+    m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_gameObject.getIndexList())});
     m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index, indexListSize, m_indexBufferStage});
 }
 
@@ -113,7 +102,7 @@ void HybridRenderPipeline::_initPasses() {
             m_tgai.createInputSet({m_geometryPass,
                                    {
                                        {m_uniformBuffer, 0},
-                                       {m_diffuseColorTex, 1}
+                                       {m_gameObject.getDiffuseTexture(), 1}
                                    },
                                    0}),
         };

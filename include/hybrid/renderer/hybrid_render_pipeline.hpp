@@ -3,12 +3,13 @@
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
 #include "hybrid/renderer/vertex.hpp"
+#include "hybrid/renderer/game_object.hpp"
 
 namespace hybrid {
 
 class HybridRenderPipeline {
 public:
-    HybridRenderPipeline(tga::Window& window);
+    HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject);
 
     void render(const Camera& camera);
 
@@ -36,12 +37,10 @@ private:
     tga::StagingBuffer m_uniformDataStage;
     tga::Buffer m_uniformBuffer;
 
-    //scene data
-    std::vector<hybrid::Vertex> m_vertexList;
-    std::vector<uint32_t> m_indexList;
-    tga::TextureBundle m_diffuseColorTex;
+    // //scene data
+    hybrid::GameObject m_gameObject;
 
-    //scene buffers TO CHANGE
+    //scene buffers
     tga::StagingBuffer m_vertexBufferStage;
     tga::Buffer m_vertexBuffer;
     tga::StagingBuffer m_indexBufferStage;
@@ -60,7 +59,6 @@ private:
 
 private:
     void _init();
-    void _loadSceneData(); //to change
     void _initBuffers();
     void _initPasses();
     void _updateUniformData(const Camera& camera);

@@ -21,13 +21,16 @@ Application::Application() : m_tgai() {
     // camera
     m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first)/m_screenResolution.second);
     m_cameraController = std::make_unique<CameraController>(*m_camera);
+
+    // scene
+    m_gameObject = std::make_unique<GameObject>("C:/TUM/Study/GPU_Pro/man/man.obj", "C:/TUM/Study/GPU_Pro/man/man_diffuse.png");
 }
 
 void Application::run() {
     
     m_tgai.setWindowTitle(*m_window, "hybrid");
 
-    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window); 
+    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject); 
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {

@@ -3,6 +3,7 @@
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
 #include "hybrid/renderer/camera_controller.hpp"
+#include "hybrid/renderer/game_object.hpp"
 
 namespace hybrid {
 
@@ -30,6 +31,9 @@ private:
     // camera
     std::unique_ptr<Camera> m_camera;
     std::unique_ptr<CameraController> m_cameraController;
+
+    // scene
+    std::unique_ptr<GameObject> m_gameObject;
 
 private:
     static Application *s_instance;
