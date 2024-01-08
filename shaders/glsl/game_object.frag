@@ -15,7 +15,7 @@ layout(location = 0) in FragData {
     vec2 uv;
 } frag;
 
-layout(set = 0, binding = 1) uniform sampler2D colorTex;
+layout(set = 0, binding = 2) uniform sampler2D colorTex;
 
 //--------------------------------------------------------------------------------------
 // outputs

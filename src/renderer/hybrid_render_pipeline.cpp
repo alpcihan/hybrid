@@ -13,10 +13,12 @@ HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObje
 
 void HybridRenderPipeline::render(const Camera& camera) {
     _updateUniformData(camera);
+    _updateModelData();
 
     auto nextFrame = m_tgai.nextFrame(m_window);
     m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  // 0 - buffer update
                 .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+                .bufferUpload(m_modelDataStage, m_modelBuffer, sizeof(ModelData))
 
                 // 1 - geometry pass
                 .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
@@ -49,7 +51,6 @@ void HybridRenderPipeline::_init() {
     _initPasses();
 }
 
-
 void HybridRenderPipeline::_initBuffers() {
     const auto [resX, resY] = Application::get().getScreenResolution();
 
@@ -62,6 +63,11 @@ void HybridRenderPipeline::_initBuffers() {
     m_uniformDataStage = m_tgai.createStagingBuffer({sizeof(UniformData)});
     m_uniformData = static_cast<UniformData *>(m_tgai.getMapping(m_uniformDataStage));
     m_uniformBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(UniformData), m_uniformDataStage});
+
+    // init model buffer
+    m_modelDataStage = m_tgai.createStagingBuffer({sizeof(ModelData)});
+    m_modelData = static_cast<ModelData *>(m_tgai.getMapping(m_modelDataStage));
+    m_modelBuffer = m_tgai.createBuffer({tga::BufferUsage::uniform, sizeof(ModelData), m_modelDataStage});
 
     // init scene buffers (vertexBuffer and indexBuffer)
     size_t vertexListSize = m_gameObject.getVertexList().size() * sizeof(hybrid::Vertex);
@@ -84,7 +90,8 @@ void HybridRenderPipeline::_initPasses() {
         tga::InputLayout inputLayout({{{
             // S0
             tga::BindingType::uniformBuffer,  // B0: uniform buffer
-            tga::BindingType::sampler         // B1: diffTex buffer
+            tga::BindingType::uniformBuffer,  // B1: model buffer
+            tga::BindingType::sampler         // B2: diffTex buffer
         }}});
 
         // pass
@@ -99,12 +106,13 @@ void HybridRenderPipeline::_initPasses() {
 
         // input sets
         m_geometryPassInputSets = {
-            m_tgai.createInputSet({m_geometryPass,
-                                   {
-                                       {m_uniformBuffer, 0},
-                                       {m_gameObject.getDiffuseTexture(), 1}
-                                   },
-                                   0}),
+            m_tgai.createInputSet({m_geometryPass, 
+                                    {
+                                        {m_uniformBuffer, 0}, 
+                                        {m_modelBuffer, 1}, 
+                                        {m_gameObject.getDiffuseTexture(), 2}
+                                    }, 
+                                    0}),
         };
 
         // free
@@ -212,7 +220,13 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
     m_uniformData->projectionParams[2] = 0;  // unused
     m_uniformData->projectionParams[3] = 0;  // unused
     m_uniformData->time = Time::getTime();
-    m_uniformData->model = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) * glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change
+}
+
+void HybridRenderPipeline::_updateModelData() {
+    glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
+                            glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
+    m_gameObject.setModelMatrix(newModelMatrix);  // save new model matrix in the object for future use
+    m_modelData->model = newModelMatrix;          // update model matrix in the scene
 }
 
 }  // namespace hybrid

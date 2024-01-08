@@ -10,7 +10,6 @@ layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     vec4 _zBufferParams;
     vec4 _projectionParams; // x: near, y: far, z: -, w: -
     float _time;
-    mat4 _model; //to change
 };
 
 // gbuffer 0: xyz: diffuse color,   w: -  

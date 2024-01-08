@@ -2,8 +2,8 @@
 
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
-#include "hybrid/renderer/vertex.hpp"
 #include "hybrid/renderer/game_object.hpp"
+#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
 
@@ -20,7 +20,10 @@ private:
         alignas(16) glm::vec4 zBufferParams;
         alignas(16) glm::vec4 projectionParams;
         float time;
-        glm::mat4 model; //to change
+    };
+
+    struct ModelData {
+        glm::mat4 model;  // to change
     };
 
 private:
@@ -33,19 +36,23 @@ private:
     std::vector<tga::Texture> m_gBuffer;
 
     // uniform buffer
-    UniformData* m_uniformData;
+    UniformData *m_uniformData;
     tga::StagingBuffer m_uniformDataStage;
     tga::Buffer m_uniformBuffer;
 
-    // //scene data
+    // scene data
     hybrid::GameObject m_gameObject;
 
-    //scene buffers
+    // model data
+    ModelData* m_modelData;
+    tga::StagingBuffer m_modelDataStage;
+    tga::Buffer m_modelBuffer;
+
+    // scene buffers
     tga::StagingBuffer m_vertexBufferStage;
     tga::Buffer m_vertexBuffer;
     tga::StagingBuffer m_indexBufferStage;
     tga::Buffer m_indexBuffer;
-
 
     // passes
     tga::RenderPass m_geometryPass;
@@ -62,6 +69,7 @@ private:
     void _initBuffers();
     void _initPasses();
     void _updateUniformData(const Camera& camera);
+    void _updateModelData();
 };
 
 }  // namespace hybrid
