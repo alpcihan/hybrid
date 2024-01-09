@@ -1,9 +1,17 @@
 #pragma once
 
 #include "hybrid/hybrid_shared.hpp"
-#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
+
+struct Vertex {
+    alignas(16) glm::vec3 position;
+    alignas(16) glm::vec3 normal;
+    alignas(16) glm::vec2 uv;
+
+    static tga::VertexLayout layout();
+};
+
 
 class GameObject {
 public:

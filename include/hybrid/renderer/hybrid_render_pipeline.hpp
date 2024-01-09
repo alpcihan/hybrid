@@ -3,7 +3,6 @@
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
 #include "hybrid/renderer/game_object.hpp"
-#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
 

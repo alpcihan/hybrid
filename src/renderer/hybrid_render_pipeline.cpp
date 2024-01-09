@@ -2,7 +2,6 @@
 
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
-#include "hybrid/renderer/vertex.hpp"
 
 namespace hybrid {
 
