@@ -68,10 +68,8 @@ bool intersectMesh(in Ray r,in float d_light)
 
 bool intersectSdf(in Ray r,in float d_light)
 {
-    vec3 p;                   //place holder (not used)
-    hybrid_PBRMaterial mat;   //place holder (not used)
-    float t = rayCast(r.origin, r.direction, _projectionParams.x, d_light, p, mat);
-    return (t < d_light);
+    float t = shadow(r.origin, r.direction, 0.1 , d_light);
+    return (t < 1.0);
 }
 
 //returns 1 if there is a hit between light and rayOrigin
@@ -113,12 +111,11 @@ void main() {
         vec3 rayDirection = normalize(_lights[i].position - worldPos);
         float rdl = dot(rayDirection,worldNormal);
         
-        if(rdl <= 0) continue; // light is behind
+        if(rdl < 0) continue; // light is behind
 
         float t_light = distance(_lights[i].position , rayOrigin);
 
-        vec3 epsilon = rayDirection * 0.001; //TODO: Magic number
-        Ray ray = createRay(rayOrigin + epsilon, rayDirection);
+        Ray ray = createRay(rayOrigin, rayDirection);
         shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
     }    
     

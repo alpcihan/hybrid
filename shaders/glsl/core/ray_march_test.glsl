@@ -80,4 +80,19 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
     return far;
 }
 
+// https://iquilezles.org/articles/rmshadows/
+float shadow( in vec3 ro, in vec3 rd, float mint, float maxt )
+{
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = map(ro + rd*t).x;
+        if( h < RAY_MARCH_HIT_DISTANCE )
+            return 0.0;
+        t += h;
+    }
+    return 1.0;
+
+}
+
 #endif

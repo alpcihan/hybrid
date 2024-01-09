@@ -78,7 +78,7 @@ void main() {
                 targetMat.metallic,                     // metallic
                 targetPositionWorld,                    // position world
                 targetNormalWorld,                      // normal world
-                positionWorld);                         // view pos
-
+                positionWorld,                          // view position           
+                0); 
     imageStore(_specularReflectionMap, id, vec4(Lo,1));
 }
