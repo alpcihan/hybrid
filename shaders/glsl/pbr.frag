@@ -75,7 +75,8 @@ void main() {
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
     //--------------------------------------------------------------------------------------
-
+    //vec3 shadowColor = vec3(shadowVal);
     // output
-    fragOut = vec4(color, 1);  
+    fragOut = vec4(color, 1);
+    //fragOut = vec4(shadowColor,1); 
 }

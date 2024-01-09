@@ -68,8 +68,7 @@ bool intersectMesh(in Ray r,in float d_light)
 
 float intersectSdf(in Ray r,in float d_light)
 {
-    //float t = shadow(r.origin, r.direction, 0.1 , d_light);
-    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.1);//(t < 1.0);
+    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.1); //TODO: Decide the w value wrt. the light features
 }
 
 //returns 1 if there is a hit between light and rayOrigin
@@ -92,8 +91,8 @@ void main() {
     const vec4 gb1 = texture(gbuffer1, uv);
     const vec4 gb2 = texture(gbuffer2, uv); 
 
+    shadowMap[idx] = 1.0; // no shadow
     if(gb2.w == HYBRID_BACKGROUND_FLAG){
-        shadowMap[idx] = 1.0; // no shadow
         return;
     }
 

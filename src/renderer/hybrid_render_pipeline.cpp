@@ -45,6 +45,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .bindInputSet(m_shadowInputSets[0])
         .bindInputSet(m_shadowInputSets[1])
         .dispatch((resX+31)/32,(resY+31)/32,1)
+        //.barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::Transfer)
           
         // specular reflection map
         .setComputePass(m_specularReflectionPass)

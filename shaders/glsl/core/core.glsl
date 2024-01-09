@@ -47,8 +47,8 @@ layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 #define HYBRID_LIGHT_COUNT 1
 const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
    // {vec3(0.5), vec3(   0,    1,      1.5),         1},
-   // {vec3(0.5), vec3(   1,    0.1,    1.5),         1},
-    {vec3(0.5), vec3(  -1,    0.1,    1.5),         1},
+    {vec3(0.5), vec3(   1,    0.1,    1.5),         1},
+    //{vec3(0.5), vec3(  -1,   2,    1.5),         1},
 };
 
 //--------------------------------------------------------------------------------------
