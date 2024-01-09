@@ -95,7 +95,8 @@ void HybridRenderPipeline::_initResources() {
     
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
-  
+    m_testTexture = m_tgai.createTexture(tga::TextureInfo{resX,resY,tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
+
     // specular reflection map
     m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
 
@@ -192,7 +193,8 @@ void HybridRenderPipeline::_initPasses() {
                     {tga::BindingType::sampler, 1},  // B0: gbuffer0
                     {tga::BindingType::sampler, 1},  // B1: gbuffer1
                     {tga::BindingType::sampler, 1},  // B2: gbuffer2
-                    {tga::BindingType::storageBuffer}// B3: shadowMap
+                    {tga::BindingType::storageBuffer},// B3: shadowMap
+                    {tga::BindingType::storageImage} // B4: Test texture
                 },
             }  
         );
@@ -212,7 +214,8 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[0], 0},
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
-                                       {m_shadowMap,  3}
+                                       {m_shadowMap,  3},
+                                       {m_testTexture,4}
                                    },
                                    1})
             };

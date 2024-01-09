@@ -19,6 +19,8 @@ HYBRID_CORE_GBUFFER_SAMPLER //S1
 layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
     float shadowMap[];
 };
+
+layout(set = 1, binding = 4, rgba16f) uniform image2D _testShadowMap;
 //--------------------------------------------------------------------------------------
 // kernel
 //--------------------------------------------------------------------------------------
@@ -92,24 +94,33 @@ void main() {
     const vec4 gb2 = texture(gbuffer2, uv); 
 
     shadowMap[idx] = 1.0; // no shadow
+    float res;
     if(gb2.w == HYBRID_BACKGROUND_FLAG){
-        return;
+        res = 1.0;
+        //return;
     }
-
-    const vec3 worldPos = gb1.xyz;
-    const vec3 worldNormal = gb2.xyz;
-    vec3 rayOrigin = worldPos;
-
-    for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
-        
-        vec3 rayDirection = normalize(_lights[i].position - worldPos);
-        float rdl = dot(rayDirection,worldNormal);
-        
-        if(rdl < 0) continue; // light is behind
-
-        float t_light = distance(_lights[i].position , rayOrigin);
-
-        Ray ray = createRay(rayOrigin, rayDirection);
-        shadowMap[idx] = hitWorld(ray, t_light); //TODO: Add different shadow maps for each light source
+    else{
+        const vec3 worldPos = gb1.xyz;
+        const vec3 worldNormal = gb2.xyz;
+        vec3 rayOrigin = worldPos;
+        for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
+            
+            vec3 rayDirection = normalize(_lights[i].position - worldPos);
+            float rdl = dot(rayDirection,worldNormal);
+            
+            if(rdl < 0){
+                //shadowMap[idx] = 0.5;
+                continue; // light is behind
+            } 
+    
+            float t_light = distance(_lights[i].position , rayOrigin);
+    
+            Ray ray = createRay(rayOrigin, rayDirection);
+            res = hitWorld(ray, t_light); //TODO: Add different shadow maps for each light source
+        }
+        shadowMap[idx] = res;
     }
+    
+    vec4 shadowColor = vec4(vec3(res),1.0);
+    imageStore(_testShadowMap,texCoords,shadowColor);
 }

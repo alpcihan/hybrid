@@ -55,12 +55,10 @@ void main() {
     uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
     float shadowVal = shadowMap[shadowIdx];
 
-    vec3 Lo = vec3(0.0);
     vec3 color = vec3(0.0);
 	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
         color += ambient * albedo * ao;
-
-        Lo += calculatePBRFromActiveSceneLights(
+        vec3 Lo =  calculatePBRFromActiveSceneLights(
                 albedo,
                 roughness,
                 metallic,
@@ -71,11 +69,12 @@ void main() {
 
         color += Lo * shadowVal;
     }
+
     
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
     //--------------------------------------------------------------------------------------
-    //vec3 shadowColor = vec3(shadowVal);
+    vec3 shadowColor = vec3(shadowVal);
     // output
     fragOut = vec4(color, 1);
     //fragOut = vec4(shadowColor,1); 
