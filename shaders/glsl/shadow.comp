@@ -87,8 +87,9 @@ void main() {
     uint idx = texCoords.y * bounds.x + texCoords.x; //used for shadow map
 
     if(any(greaterThanEqual(texCoords,bounds))) return;
+   
     
-    vec2 uv = vec2(texCoords)/vec2(bounds);
+    vec2 uv = vec2(texCoords)/vec2(bounds)+ (0.5*calculateUvSize());
 
     const vec4 gb1 = texture(gbuffer1, uv);
     const vec4 gb2 = texture(gbuffer2, uv); 

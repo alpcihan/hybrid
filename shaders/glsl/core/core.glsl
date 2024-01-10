@@ -73,4 +73,8 @@ float linearToZDepth(float z) {
     return (1.0 / z - _zBufferParams.w) / _zBufferParams.z;
 }
 
+vec2 calculateUvSize(){
+    return 1.0/(vec2(_projectionParams.z,_projectionParams.w)); 
+}
+
 #endif

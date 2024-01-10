@@ -22,7 +22,8 @@ HYBRID_CORE_GBUFFER_TARGET
 // program
 //--------------------------------------------------------------------------------------
 void main()  {
-    Ray ray = createCameraRay(uv*2-1, inverse(_projection), inverse(_view));
+    
+    Ray ray = createCameraRay(uv*2-1 + 0.5*calculateUvSize(), inverse(_projection), inverse(_view));
     
     // ray marching
     vec3 positionWorld;
