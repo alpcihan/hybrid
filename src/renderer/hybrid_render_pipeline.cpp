@@ -45,6 +45,8 @@ void HybridRenderPipeline::render(const Camera& camera) {
     m_cmd = tga::CommandRecorder{m_tgai, m_cmd}  
         // upload
         .bufferUpload(m_uniformDataStage, m_uniformBuffer, sizeof(UniformData))
+        .bufferUpload(m_modelDataStage, m_modelBuffer, sizeof(ModelData))
+
          
         // shadow map
         .setComputePass(m_shadowPass)
@@ -68,9 +70,11 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .draw(3, 0)
 
         // geometry pass
-        .setRenderPass(m_geometryPass, 0, {0, 0, 0, 0})
+        .setRenderPass(m_geometryPass, 0, {0, 0, 0, 1})
         .bindInputSet(m_geometryPassInputSets[0])
-        .draw(3, 0)
+        .bindVertexBuffer(m_vertexBuffer)
+        .bindIndexBuffer(m_indexBuffer)
+        .drawIndexed(m_gameObject.getIndexList().size(), 0, 0)
 
         // custom geometry pass
         .setRenderPass(m_customGeometryPass, 0)
