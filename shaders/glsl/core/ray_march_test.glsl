@@ -111,4 +111,23 @@ float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
     return 0.25*(1.0+res)*(1.0+res)*(2.0-res);
 }
 
+float softshadow_2( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+{
+    float res = 1.0;
+    float ph = 1e20;
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = map(ro + rd*t).x;
+        if( h<RAY_MARCH_HIT_DISTANCE )
+            return 0.0;
+        float y = h*h/(2.0*ph);
+        float d = sqrt(h*h-y*y);
+        res = min( res, d/(w*max(0.0,t-y)) );
+        ph = h;
+        t += h;
+    }
+    return res;
+}
+
 #endif
