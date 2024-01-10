@@ -23,7 +23,13 @@ HYBRID_CORE_GBUFFER_TARGET
 // program
 //--------------------------------------------------------------------------------------
 void main() {
-    gbuffer0 = vec4(1,1,1,1);
-    gbuffer1 = vec4(frag.positionWorld,1);
-    gbuffer2 = vec4(frag.normalWorld,1);
+    // material
+    const vec3  albedo      = vec3(0.8);
+    const float roughness   = 0.2;
+    const float metallic    = 0.8;
+
+    // output
+    gbuffer0        = vec4(albedo,roughness);
+    gbuffer1        = vec4(frag.positionWorld,metallic);
+    gbuffer2        = vec4(frag.normalWorld, HYBRID_OBJECT_FLAG);
 }

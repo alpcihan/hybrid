@@ -1,0 +1,84 @@
+#version 450
+#extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_GOOGLE_include_directive : enable
+
+//--------------------------------------------------------------------------------------
+// includes
+//--------------------------------------------------------------------------------------
+#include "core/core.glsl"
+#include "core/ray_march_test.glsl"
+#include "core/pbr.glsl"
+
+//--------------------------------------------------------------------------------------
+// work group local size
+//--------------------------------------------------------------------------------------
+layout(local_size_x = 32) in;
+layout(local_size_y = 32) in;
+
+//--------------------------------------------------------------------------------------
+// resources
+//--------------------------------------------------------------------------------------
+HYBRID_CORE_GBUFFER_SAMPLER
+layout(set = 2, binding = 0, rgba16f) uniform image2D _specularReflectionMap;
+
+//--------------------------------------------------------------------------------------
+// program
+//--------------------------------------------------------------------------------------
+void main() {
+    const ivec2 id = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    const ivec2 targetResolution = imageSize(_specularReflectionMap);
+
+    if(id.x >= targetResolution.x || id.y >= targetResolution.y) return;
+
+    vec2 uv = vec2(id) / targetResolution;
+ 
+    // read gbuffer
+    const vec4 gb2 = texture(gbuffer2, uv);
+
+    if(gb2.w == HYBRID_BACKGROUND_FLAG) {
+        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+        return;
+    }
+
+    // read gbuffer
+    const vec4  gb1             = texture(gbuffer1, uv);
+    
+    const vec3  positionWorld   = gb1.xyz;
+    const vec3  normalWorld     = gb2.xyz;
+
+    // create specular reflection ray
+    const vec3 viewPos      = (inverse(_view)*vec4(0,0,0,1)).xyz;
+    const vec3 toSurface    = normalize(positionWorld - viewPos);
+    const vec3 rayDir       = normalize(reflect(toSurface, normalWorld));
+    Ray ray = createRay(positionWorld + rayDir * 0.0001, rayDir);
+
+    // ray march
+    hybrid_PBRMaterial targetMat;
+    vec3 targetPositionWorld;
+    float depth = rayCast(
+                    ray.origin,                         // ray origin
+                    ray.direction,                      // ray direction
+                    _projectionParams[0],               // near distance
+                    _projectionParams[1],               // far distance
+                    targetPositionWorld,                // position world (out)
+                    targetMat                           // material (out)
+    );
+
+    if(depth >= _projectionParams[1]) {
+        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+        return;
+    } 
+    
+    // get normal (TODO: only if sdf)
+    const vec3 targetNormalWorld = sdfNormal(targetPositionWorld);
+
+    vec3 Lo = calculatePBRFromActiveSceneLights(
+                targetMat.albedo,                       // albedo
+                targetMat.roughness,                    // roughness
+                targetMat.metallic,                     // metallic
+                targetPositionWorld,                    // position world
+                targetNormalWorld,                      // normal world
+                positionWorld);                         // view pos
+
+    imageStore(_specularReflectionMap, id, vec4(Lo,1));
+}

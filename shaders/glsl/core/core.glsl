@@ -2,19 +2,37 @@
 #define HYBRID_CORE_UTILS
 
 //--------------------------------------------------------------------------------------
+// structs
+//--------------------------------------------------------------------------------------
+// TODO: might create a seperate file
+struct hybrid_PointLight {
+    vec3 color;
+    vec3 position;
+
+    float attenuationCoeff; // TODO: add constant and linear term
+};
+
+struct hybrid_PBRMaterial {
+    vec3 albedo;
+    float roughness;
+    float metallic;
+};
+
+//--------------------------------------------------------------------------------------
 // default layouts
 //--------------------------------------------------------------------------------------
 layout(set = 0, binding = 0) uniform HYBRID_CORE_UNIFORM_DATA {
     mat4 _projection;
     mat4 _view;
     vec4 _zBufferParams;
-    vec4 _projectionParams; // x: near, y: far, z: -, w: -
+    vec4 _projectionParams; // x: near, y: far, z: resX, w: resY
     float _time;
 };
 
-// gbuffer 0: xyz: diffuse color,   w: -  
-// gbuffer 1: xyz: world pos,       w: -
-// gbuffer 2: xyz: world normal,    w: - 
+// TODO: set different names for read and write gbuffers
+// gbuffer 0: xyz: albedo,          w: roughness  
+// gbuffer 1: xyz: world pos,       w: metallic
+// gbuffer 2: xyz: world normal,    w: 0 -> background 1 -> object
 #define HYBRID_CORE_GBUFFER_TARGET \
 layout(location = 0) out vec4 gbuffer0; \
 layout(location = 1) out vec4 gbuffer1; \
@@ -24,6 +42,20 @@ layout(location = 2) out vec4 gbuffer2; \
 layout(set = 1, binding = 0) uniform sampler2D gbuffer0; \
 layout(set = 1, binding = 1) uniform sampler2D gbuffer1; \
 layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
+
+// TODO: this will be replaced with light buffer
+#define HYBRID_LIGHT_COUNT 3
+const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
+    {vec3(0.5), vec3(   0,    1,      1.5),         1},
+    {vec3(0.5), vec3(   1,    0.1,    1.5),         1},
+    {vec3(0.5), vec3(  -1,    0.1,    1.5),         1},
+};
+
+//--------------------------------------------------------------------------------------
+// macros
+//--------------------------------------------------------------------------------------
+#define HYBRID_BACKGROUND_FLAG 0
+#define HYBRID_OBJECT_FLAG 1
 
 //--------------------------------------------------------------------------------------
 // utils

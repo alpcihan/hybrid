@@ -14,10 +14,10 @@ public:
 
 private:
     struct UniformData {
-        alignas(16) glm::mat4 projection;
-        alignas(16) glm::mat4 view;
-        alignas(16) glm::vec4 zBufferParams;
-        alignas(16) glm::vec4 projectionParams;
+        glm::mat4 projection;
+        glm::mat4 view;
+        glm::vec4 zBufferParams;
+        glm::vec4 projectionParams;
         float time;
     };
 
@@ -31,8 +31,10 @@ private:
     tga::Window m_window;
     tga::CommandBuffer m_cmd;
 
-    // gbuffer
+    // scene maps
     std::vector<tga::Texture> m_gBuffer;
+    tga::Buffer m_shadowMap;
+    tga::Texture m_specularReflectionTex;
 
     // uniform buffer
     UniformData *m_uniformData;
@@ -56,16 +58,20 @@ private:
     // passes
     tga::RenderPass m_geometryPass;
     tga::RenderPass m_customGeometryPass;
+    tga::ComputePass m_shadowPass;
+    tga::ComputePass m_specularReflectionPass;
     tga::RenderPass m_lightingPass;
 
     // input sets
     std::vector<tga::InputSet> m_geometryPassInputSets;
     std::vector<tga::InputSet> m_customGeometryPassInputSets;
+    std::vector<tga::InputSet> m_shadowInputSets;
+    std::vector<tga::InputSet> m_specularReflectionPassInputSets;
     std::vector<tga::InputSet> m_lightingPassInputSets;
 
 private:
     void _init();
-    void _initBuffers();
+    void _initResources();
     void _initPasses();
     void _updateUniformData(const Camera& camera);
     void _updateModelData();
