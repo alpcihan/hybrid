@@ -65,7 +65,9 @@ void main() {
     );
 
     if(tHit >= _projectionParams[1]) {
-        imageStore(_specularReflectionMap, id, vec4(0,0,0,MAX_FLOAT)); // TODO: remove this (init the default values at the beginning of the pass)
+        const vec4 environmentColor = hybrid_sampleEnvironmentMap(ray.direction);
+        imageStore(_specularReflectionMap, id, vec4(environmentColor.xyz * 0.5, MAX_FLOAT)); // TODO: remove this (init the default values at the beginning of the pass)
+        // imageStore(_specularReflectionMap, id, vec4(0,0,0, MAX_FLOAT));
         return;
     } 
     

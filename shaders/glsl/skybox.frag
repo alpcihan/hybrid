@@ -32,5 +32,9 @@ void main() {
         discard;
     } 
 
-    fragOut = texture(_skybox, uv);  
+    // direction
+    vec3 dir = (inverse(_projection) * vec4(uv*2-1, 0.0f, 1.0f)).xyz;
+    dir = normalize((inverse(_view) * vec4(dir, 0.0f)).xyz);
+
+    fragOut = hybrid_sampleEnvironmentMap(dir) * 0.5;
 }

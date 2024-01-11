@@ -83,8 +83,8 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
                 mat.metallic   = (res.y / 7) / 7;
             } else {
                 mat.albedo     = RAY_MARCH_ALBEDOS[abs(int(res.y)+1)];
-                mat.roughness  = 0.7;
-                mat.metallic   = 0.7;
+                mat.roughness  = 0.4;
+                mat.metallic   = 0.8;
             }
 
             return depth;

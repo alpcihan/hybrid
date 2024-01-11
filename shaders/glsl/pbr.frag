@@ -37,8 +37,6 @@ layout (location = 0) out vec4 fragOut;
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-const vec3 ambient = vec3(0.0001);
-
 void main() {
     // read g-buffer
     const vec4 gb0  = texture(gbuffer0, uv);
@@ -54,11 +52,10 @@ void main() {
     const float metallic        = gb1.w;
     const vec3  normalWorld     = gb2.xyz;
 
-    const float ao = 0.01;
-    const vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
-    const vec3 V = normalize(viewPos - positionWorld);  
+    const vec3  viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
+    const vec3  V = normalize(viewPos - positionWorld);  
 
-    // direct lights          
+    // direct lights 
     vec3 Lo = calculatePBRLoFromSceneLights(
                 albedo,
                 roughness,
@@ -67,34 +64,27 @@ void main() {
                 normalWorld,
                 viewPos);
 
-    // reflection
-    float pyramidIdx = pow(roughness,1) * _specularReflectionPyramidSize;
-    float pyramid_a = fract(pyramidIdx);
-    int pyramidIdx_i = int(pyramidIdx);
-    vec4 inReflect;
-    
-    if(pyramidIdx < _specularReflectionPyramidSize - 1) {
-        inReflect = mix(
-            texture(_specularReflectionPyramid[pyramidIdx_i],   uv),
-            texture(_specularReflectionPyramid[pyramidIdx_i+1], uv),
-            pyramid_a);
-    } else {
-        inReflect = texture(_specularReflectionPyramid[pyramidIdx_i],   uv);
-    }
+    vec3 color = Lo;
 
-    Lo += calculatePBRLo(
-                albedo,
-                roughness,
-                metallic,
-                normalWorld,
-                V,
-                inReflect.xyz,
-                reflect(-V, normalWorld)
-                );
-   
-    
-    // final color
-    vec3 color = Lo + ambient * albedo * ao;
+    // sample reflection map
+    const vec4 inReflect = texture(_specularReflectionPyramid[0], uv);
+
+    // indirect light
+    const float indirectIntensity = 1;
+    vec3 f0 = 0.04 * (1.0 - metallic) + albedo * metallic;
+
+    // indirect diffuse
+    vec3 diffuseColor = (1.0 - metallic) * albedo;
+    vec3 indirectDiffuse = irradiance_SphericalHarmonics(normalWorld) * fd_Lambert();
+    indirectDiffuse *= diffuseColor;
+    color += indirectDiffuse;
+
+    // indirect specular
+    float NoV = abs(dot(normalWorld, -V)) + 1e-5;
+    vec2 dfg = prefilteredDFG_Karis(roughness, NoV);
+    vec3 specularColor = f0 * dfg.x + dfg.y;
+    vec3 ibl = inReflect.xyz * specularColor;
+    color += ibl * indirectIntensity * pow(1-roughness, 5);
 
     // shadow
 	uint shadowIdx = texCoords.y * bounds.x + texCoords.x;

@@ -43,6 +43,8 @@ layout(set = 1, binding = 0) uniform sampler2D gbuffer0; \
 layout(set = 1, binding = 1) uniform sampler2D gbuffer1; \
 layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 
+layout(set = 1, binding = 4) uniform sampler2D _environmentMap;
+
 // TODO: this will be replaced with light buffer
 #define HYBRID_LIGHT_COUNT 3
 const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
@@ -63,14 +65,21 @@ const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
 #define MAX_FLOAT 3.402823466e+38
 
 // depth to eye z distance
-float depthToEyeZ(float depth, in vec3 direction) {
+float hybrid_depthToEyeZ(float depth, in vec3 direction) {
     const vec3 eyeForward = vec3(0.,0.,-1.) * mat3(_view);
     return depth * dot(direction, eyeForward);
 }
 
 // linear depth to z buffer depth
-float linearToZDepth(float z) {
+float hybrid_linearToZDepth(float z) {
     return (1.0 / z - _zBufferParams.w) / _zBufferParams.z;
+}
+
+// sample environment map by normalized direction vector
+vec4 hybrid_sampleEnvironmentMap(vec3 dir) {
+    const float PI = 3.14159265359;
+    const vec2 uv = vec2(atan(dir.x, dir.z) / (2.0 * PI) + 0.5, asin(-dir.y) / PI + 0.5);
+    return texture(_environmentMap, uv);
 }
 
 #endif

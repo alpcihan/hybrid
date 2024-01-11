@@ -43,7 +43,7 @@ void main()  {
     } 
 
     // output
-    gl_FragDepth    = linearToZDepth(depthToEyeZ(depth, ray.direction));
+    gl_FragDepth    = hybrid_linearToZDepth(hybrid_depthToEyeZ(depth, ray.direction));
     gbuffer0        = vec4(mat.albedo, mat.roughness);
     gbuffer1        = vec4(positionWorld, mat.metallic);
     gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);

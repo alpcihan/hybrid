@@ -14,7 +14,7 @@ Application::Application() : m_tgai() {
     s_instance = this;
 
     // window
-    m_screenResolution = std::pair<uint32_t, uint32_t>(640, 360);
+    m_screenResolution = std::pair<uint32_t, uint32_t>(640*2, 360*2);
     m_window =
         std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
 
