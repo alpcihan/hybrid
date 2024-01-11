@@ -52,19 +52,28 @@ void main() {
     const float metallic        = gb1.w;
     const vec3  normalWorld     = gb2.xyz;
 
-    const vec3  viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
+    const float ao = 0.01;
+    const vec3 viewPos = (inverse(_view)*vec4(0,0,0,1)).xyz;
     const vec3  V = normalize(viewPos - positionWorld);  
 
-    // direct lights 
-    vec3 Lo = calculatePBRLoFromSceneLights(
+    //TODO: Check max light count before loop
+    uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
+    float shadowVal = shadowMap[shadowIdx];
+
+    vec3 color = vec3(0.0);
+	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
+        color += ambient * albedo * ao;
+        vec3 Lo =  calculatePBRFromActiveSceneLights(
                 albedo,
                 roughness,
                 metallic,
                 positionWorld,
                 normalWorld,
-                viewPos);
+                viewPos,
+                i);
 
-    vec3 color = Lo;
+        color += Lo * shadowVal;
+    }
 
     // sample reflection map
     const vec4 inReflect = texture(_specularReflectionPyramid[0], uv);
@@ -85,11 +94,6 @@ void main() {
     vec3 specularColor = f0 * dfg.x + dfg.y;
     vec3 ibl = inReflect.xyz * specularColor;
     color += ibl * indirectIntensity * pow(1-roughness, 5);
-
-    // shadow
-	uint shadowIdx = texCoords.y * bounds.x + texCoords.x;
-    float shadowCoeff = shadowMap[shadowIdx];
-    color *= shadowCoeff;
     
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  

@@ -1,17 +1,21 @@
 #version 450
-#extension GL_ARB_separate_shader_objects : enable
 #extension GL_GOOGLE_include_directive : enable
 
 //--------------------------------------------------------------------------------------
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
-#include "core/ray_march_test.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs 
 //--------------------------------------------------------------------------------------
-layout (location = 0) in vec2 uv;
+layout(location = 0) in FragData {
+    vec3 positionWorld;
+    vec3 normalWorld;
+    vec2 uv;
+} frag;
+
+layout(set = 0, binding = 2) uniform sampler2D colorTex;
 
 //--------------------------------------------------------------------------------------
 // outputs
@@ -21,31 +25,8 @@ HYBRID_CORE_GBUFFER_TARGET
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-void main()  {
-    
-    Ray ray = createCameraRay(uv*2-1 + 0.5*calculateUvSize(), inverse(_projection), inverse(_view));
-    
-    // ray marching
-    vec3 positionWorld;
-    hybrid_PBRMaterial mat;
-    float depth = rayCast(
-      ray.origin,
-      ray.direction,
-      _projectionParams[0],
-      _projectionParams[1],
-      positionWorld,
-      mat
-    );
-
-    // hit check
-    if(depth >= _projectionParams[1]) {
-      gl_FragDepth = 1;
-      return;
-    } 
-
-    // output
-    gl_FragDepth    = hybrid_linearToZDepth(hybrid_depthToEyeZ(depth, ray.direction));
-    gbuffer0        = vec4(mat.albedo, mat.roughness);
-    gbuffer1        = vec4(positionWorld, mat.metallic);
-    gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);
+void main() {
+    gbuffer0 = vec4(texture(colorTex, frag.uv).rgb, 1);
+    gbuffer1 = vec4(frag.positionWorld,1);
+    gbuffer2 = vec4(frag.normalWorld,1);
 }

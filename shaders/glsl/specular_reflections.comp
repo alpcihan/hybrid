@@ -30,7 +30,7 @@ void main() {
 
     if(id.x >= targetResolution.x || id.y >= targetResolution.y) return;
 
-    vec2 uv = vec2(id) / targetResolution;
+    vec2 uv = vec2(id) / targetResolution + (0.5*calculateUvSize());
  
     // read gbuffer
     const vec4 gb2 = texture(gbuffer2, uv);

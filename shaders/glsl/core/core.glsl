@@ -46,11 +46,11 @@ layout(set = 1, binding = 2) uniform sampler2D gbuffer2; \
 layout(set = 1, binding = 4) uniform sampler2D _environmentMap;
 
 // TODO: this will be replaced with light buffer
-#define HYBRID_LIGHT_COUNT 3
+#define HYBRID_LIGHT_COUNT 1
 const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
-    {vec3(0.5), vec3(   0,    1,      1.5),         1},
+   // {vec3(0.5), vec3(   0,    1,      1.5),         1},
     {vec3(0.5), vec3(   1,    0.1,    1.5),         1},
-    {vec3(0.5), vec3(  -1,    0.1,    1.5),         1},
+    //{vec3(0.5), vec3(  -1,   2,    1.5),         1},
 };
 
 //--------------------------------------------------------------------------------------
@@ -80,6 +80,10 @@ vec4 hybrid_sampleEnvironmentMap(vec3 dir) {
     const float PI = 3.14159265359;
     const vec2 uv = vec2(atan(dir.x, dir.z) / (2.0 * PI) + 0.5, asin(-dir.y) / PI + 0.5);
     return texture(_environmentMap, uv);
+
+vec2 calculateUvSize(){
+    return 1.0/(vec2(_projectionParams.z,_projectionParams.w)); 
+
 }
 
 #endif

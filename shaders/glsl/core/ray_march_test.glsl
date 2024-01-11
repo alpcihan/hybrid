@@ -96,4 +96,54 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
     return far;
 }
 
+// https://iquilezles.org/articles/rmshadows/
+float shadow( in vec3 ro, in vec3 rd, float mint, float maxt )
+{
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = map(ro + rd*t).x;
+        if( h < RAY_MARCH_HIT_DISTANCE )
+            return 0.0;
+        t += h;
+    }
+    return 1.0;
+
+}
+
+// https://iquilezles.org/articles/rmshadows/
+float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+{
+    float res = 1.0;
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = map(ro + t*rd).x;
+        res = min( res, h/(w*t) );
+        t += clamp(h, 0.005, 0.50);
+        if( res<-1.0 || t>maxt ) break;
+    }
+    res = max(res,-1.0);
+    return smoothstep( -1.0 , 1.0, res );
+}
+
+float softshadow_2( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+{
+    float res = 1.0;
+    float ph = 1e20;
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = map(ro + rd*t).x;
+        if( h<RAY_MARCH_HIT_DISTANCE )
+            return 0.0;
+        float y = h*h/(2.0*ph);
+        float d = sqrt(h*h-y*y);
+        res = min( res, d/(w*max(0.0,t-y)) );
+        ph = h;
+        t += h;
+    }
+    return res;
+}
+
 #endif

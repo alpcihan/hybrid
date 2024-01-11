@@ -1,4 +1,4 @@
 #pragma once
 
 #define HYBRID_SHADER_PATH(relative) "${CMAKE_BINARY_DIR}/shaders/" relative
-#define HYBRID_ASSET_PATH(relative)  "${CMAKE_SOURCE_DIR}/resources/" relative
+#define HYBRID_ASSETS_PATH(relative) "${CMAKE_SOURCE_DIR}/assets/" relative
