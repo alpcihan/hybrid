@@ -10,6 +10,31 @@
 //--------------------------------------------------------------------------------------
 // pbr utils
 //--------------------------------------------------------------------------------------
+float fd_Lambert() {
+    return 1.0 / PI;
+}
+
+// Irradiance from "Ditch River" IBL (http://www.hdrlabs.com/sibl/archive.html)
+vec3 irradiance_SphericalHarmonics(const vec3 n) {  
+    return max(
+          vec3( 0.754554516862612,  0.748542953903366,  0.790921515418539)
+        + vec3(-0.083856548007422,  0.092533500963210,  0.322764661032516) * (n.y)
+        + vec3( 0.308152705331738,  0.366796330467391,  0.466698181299906) * (n.z)
+        + vec3(-0.188884931542396, -0.277402551592231, -0.377844212327557) * (n.x)
+        , 0.0);
+}
+
+// Karis 2014, "Physically Based Material on Mobile"
+vec2 prefilteredDFG_Karis(float roughness, float NoV) {
+    const vec4 c0 = vec4(-1.0, -0.0275, -0.572,  0.022);
+    const vec4 c1 = vec4( 1.0,  0.0425,  1.040, -0.040);
+
+    vec4 r = roughness * c0 + c1;
+    float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
+
+    return vec2(-1.04, 1.04) * a004 + r.zw;
+}
+
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 } 
@@ -49,23 +74,53 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 //--------------------------------------------------------------------------------------
 // pbr lighting functions | https://learnopengl.com/PBR/Lighting
 //--------------------------------------------------------------------------------------
-vec3 calculatePBRFromActiveSceneLights(
+vec3 calculatePBRLo(
+    in vec3 albedo,
+    float roughness,
+    float metallic,
+    
+    in vec3 N,              // normal world
+    in vec3 V,              // surface to view
+
+    in vec3 radiance,       // radiance
+    in vec3 L               // surface to light
+) {
+    const vec3 F0   = mix(vec3(0.04), albedo, metallic);
+    const vec3 H    = normalize(V + L);      
+            
+    // brdf
+    float NDF = distributionGGX(N, H, roughness);        
+    float G   = geometrySmith(N, V, L, roughness);      
+    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+            
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;	  
+            
+    vec3  numerator     = NDF * G * F;
+    float denominator   = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3  specular      = numerator / denominator;  
+                
+    // add to outgoing radiance Lo
+    float NdotL = max(dot(N, L), 0.0);   
+
+    // return Lo
+    return (kD * albedo / PI + specular) * radiance * NdotL; 
+}
+
+vec3 calculatePBRLoFromSceneLights(
     in vec3 albedo,
     float roughness,
     float metallic,
     in vec3 positionWorld,
-    in vec3 normalWorld,
+    in vec3 N,
     in vec3 viewPos,
     in int i
 ) {
-    vec3 N = normalize(normalWorld);
-    vec3 V = normalize(viewPos - positionWorld);
-
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-	           
+    const vec3 F0   = mix(vec3(0.04), albedo, metallic);
+    const vec3 V    = normalize(viewPos - positionWorld); // TODO: pass it as a parameter
+    
     vec3 Lo = vec3(0.0);
-
 
     // radiance
     const vec3 toLight = _lights[i].position - positionWorld;
@@ -78,7 +133,7 @@ vec3 calculatePBRFromActiveSceneLights(
     // brdf
     float NDF = distributionGGX(N, H, roughness);        
     float G   = geometrySmith(N, V, L, roughness);      
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);       
         
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
@@ -90,7 +145,7 @@ vec3 calculatePBRFromActiveSceneLights(
             
     // add to outgoing radiance Lo
     float NdotL = max(dot(N, L), 0.0);                
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL;  
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
     return Lo;
 }

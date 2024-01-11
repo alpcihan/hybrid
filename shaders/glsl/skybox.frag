@@ -6,46 +6,35 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
-#include "core/ray_march_test.glsl"
+
+//--------------------------------------------------------------------------------------
+// g-buffer (read)
+//--------------------------------------------------------------------------------------
+HYBRID_CORE_GBUFFER_SAMPLER
 
 //--------------------------------------------------------------------------------------
 // inputs 
 //--------------------------------------------------------------------------------------
 layout (location = 0) in vec2 uv;
+layout(set = 1, binding = 4) uniform sampler2D _skybox;
 
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
-HYBRID_CORE_GBUFFER_TARGET
+layout (location = 0) out vec4 fragOut;
 
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
-void main()  {
-    
-    Ray ray = createCameraRay(uv*2-1 + 0.5*calculateUvSize(), inverse(_projection), inverse(_view));
-    
-    // ray marching
-    vec3 positionWorld;
-    hybrid_PBRMaterial mat;
-    float depth = rayCast(
-      ray.origin,
-      ray.direction,
-      _projectionParams[0],
-      _projectionParams[1],
-      positionWorld,
-      mat
-    );
-
-    // hit check
-    if(depth >= _projectionParams[1]) {
-      gl_FragDepth = 1;
-      return;
+void main() {
+    // TODO: handle this with pipeline's depth test
+    if(texture(gbuffer2, uv).w != HYBRID_BACKGROUND_FLAG) {
+        discard;
     } 
 
-    // output
-    gl_FragDepth    = hybrid_linearToZDepth(hybrid_depthToEyeZ(depth, ray.direction));
-    gbuffer0        = vec4(mat.albedo, mat.roughness);
-    gbuffer1        = vec4(positionWorld, mat.metallic);
-    gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);
+    // direction
+    vec3 dir = (inverse(_projection) * vec4(uv*2-1, 0.0f, 1.0f)).xyz;
+    dir = normalize((inverse(_view) * vec4(dir, 0.0f)).xyz);
+
+    fragOut = hybrid_sampleEnvironmentMap(dir) * 0.5;
 }

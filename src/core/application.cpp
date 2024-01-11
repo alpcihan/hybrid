@@ -14,7 +14,7 @@ Application::Application() : m_tgai() {
     s_instance = this;
 
     // window
-    m_screenResolution = std::pair<uint32_t, uint32_t>(640, 360);
+    m_screenResolution = std::pair<uint32_t, uint32_t>(640*2, 360*2);
     m_window =
         std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
 
@@ -23,7 +23,7 @@ Application::Application() : m_tgai() {
     m_cameraController = std::make_unique<CameraController>(*m_camera);
 
     // scene
-    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSETS_PATH("man/man.obj"), HYBRID_ASSETS_PATH("man/man_diffuse.png"));
+    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("man/man.obj"), HYBRID_ASSET_PATH("man/man_diffuse.png"));
 }
 
 void Application::run() {
@@ -36,7 +36,7 @@ void Application::run() {
         const float deltaTime = timer.elapsed();
         // update time
         {
-            std::cout << "FPS: " << 1 / deltaTime << "\n";
+            // std::cout << "FPS: " << 1 / deltaTime << "\n";
             Time::_update(deltaTime);
             timer.reset();
         }

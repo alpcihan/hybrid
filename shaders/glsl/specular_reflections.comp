@@ -19,7 +19,7 @@ layout(local_size_y = 32) in;
 // resources
 //--------------------------------------------------------------------------------------
 HYBRID_CORE_GBUFFER_SAMPLER
-layout(set = 2, binding = 0, rgba16f) uniform image2D _specularReflectionMap;
+layout(set = 2, binding = 0, rgba16f) writeonly uniform image2D _specularReflectionMap;
 
 //--------------------------------------------------------------------------------------
 // program
@@ -55,7 +55,7 @@ void main() {
     // ray march
     hybrid_PBRMaterial targetMat;
     vec3 targetPositionWorld;
-    float depth = rayCast(
+    float tHit = rayCast(
                     ray.origin,                         // ray origin
                     ray.direction,                      // ray direction
                     _projectionParams[0],               // near distance
@@ -64,21 +64,24 @@ void main() {
                     targetMat                           // material (out)
     );
 
-    if(depth >= _projectionParams[1]) {
-        imageStore(_specularReflectionMap, id, vec4(0)); // TODO: remove this (init the default values at the beginning of the pass)
+    if(tHit >= _projectionParams[1]) {
+        const vec4 environmentColor = hybrid_sampleEnvironmentMap(ray.direction);
+        imageStore(_specularReflectionMap, id, vec4(environmentColor.xyz * 0.5, MAX_FLOAT)); // TODO: remove this (init the default values at the beginning of the pass)
+        // imageStore(_specularReflectionMap, id, vec4(0,0,0, MAX_FLOAT));
         return;
     } 
     
     // get normal (TODO: only if sdf)
     const vec3 targetNormalWorld = sdfNormal(targetPositionWorld);
 
-    vec3 Lo = calculatePBRFromActiveSceneLights(
-                targetMat.albedo,                       // albedo
-                targetMat.roughness,                    // roughness
-                targetMat.metallic,                     // metallic
-                targetPositionWorld,                    // position world
-                targetNormalWorld,                      // normal world
-                positionWorld,                          // view position           
-                0); 
-    imageStore(_specularReflectionMap, id, vec4(Lo,1));
+    vec3 Lo = calculatePBRLoFromSceneLights(
+                targetMat.albedo,               // albedo
+                targetMat.roughness,            // roughness
+                targetMat.metallic,             // metallic
+                targetPositionWorld,            // position world
+                targetNormalWorld,              // normal world
+                positionWorld,                  // view pos
+                0);                         
+
+    imageStore(_specularReflectionMap, id, vec4(Lo, tHit));
 }
