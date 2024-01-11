@@ -53,6 +53,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .bindInputSet(m_shadowInputSets[0])
         .bindInputSet(m_shadowInputSets[1])
         .dispatch((resX+31)/32,(resY+31)/32,1)
+        //.barrier(tga::PipelineStage::ComputeShader, tga::PipelineStage::Transfer)
           
         // specular reflection map
         .setComputePass(m_specularReflectionPass)
@@ -102,11 +103,10 @@ void HybridRenderPipeline::_initResources() {
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
                  m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
     
-    // shadow map (contains shadow coefficient)
-    auto shadowStaging = m_tgai.createStagingBuffer({sizeof(float)*resX*resY});
-    m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY},shadowStaging});
-    // TODO: free staging buffer
-  
+    // shadow map
+    m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
+    m_testTexture = m_tgai.createTexture(tga::TextureInfo{resX,resY,tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
+
     // specular reflection map
     m_specularReflectionTex = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
 
@@ -224,7 +224,8 @@ void HybridRenderPipeline::_initPasses() {
                     {tga::BindingType::sampler, 1},  // B0: gbuffer0
                     {tga::BindingType::sampler, 1},  // B1: gbuffer1
                     {tga::BindingType::sampler, 1},  // B2: gbuffer2
-                    {tga::BindingType::storageBuffer}// B3: shadowMap
+                    {tga::BindingType::storageBuffer},// B3: shadowMap
+                    {tga::BindingType::storageImage} // B4: Test texture
                 },
             }  
         );
@@ -244,7 +245,8 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[0], 0},
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
-                                       {m_shadowMap,  3}
+                                       {m_shadowMap,  3},
+                                       {m_testTexture,4}
                                    },
                                    1})
             };

@@ -8,6 +8,7 @@
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl" //S0
 #include "core/ray.glsl"
+#include "core/ray_march_test.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs
@@ -18,6 +19,8 @@ HYBRID_CORE_GBUFFER_SAMPLER //S1
 layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
     float shadowMap[];
 };
+
+layout(set = 1, binding = 4, rgba16f) uniform image2D _testShadowMap;
 //--------------------------------------------------------------------------------------
 // kernel
 //--------------------------------------------------------------------------------------
@@ -25,21 +28,8 @@ layout(local_size_x = 32) in;
 layout(local_size_y = 32) in;
 
 //--------------------------------------------------------------------------------------
-// Scene data (Coppy pasted from pbr) TODO: Change this
+// Scene data TODO: Take it from CPU
 //--------------------------------------------------------------------------------------
-struct PointLight {
-    vec3 color;
-    vec3 position;
-
-    float attenuationCoeff; // TODO: add constant and linear term
-};
-
-#define LIGHT_COUNT 3
-const PointLight lights[LIGHT_COUNT] = {
-    {vec3(1), vec3(-0.5,1,2), 5},
-    {vec3(1), vec3(1,0,2),    5},
-    {vec3(1), vec3(-1,0.1,2), 5},
-};
 
 vec3 positions[3] = vec3[](
     vec3(0.0, -0.5,0.0),
@@ -69,46 +59,68 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 }
 
 
-//returns 1 if there is a hit between light and rayOrigin
-float hitWorld(in Ray r,in float d_light){
-
+bool intersectMesh(in Ray r,in float d_light)
+{
     //triangle intersection
     float t =  triIntersect(r, positions[0],positions[1],positions[2]);
     t= min(d_light,t);
-    //TODO: sdf intersection
-    if(t == d_light) return 0;
-    return 1;
+    if(t == d_light) return false;
+    return true;
+}
+
+float intersectSdf(in Ray r,in float d_light)
+{
+    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
+}
+
+//returns 1 if there is a hit between light and rayOrigin
+float hitWorld(in Ray r,in float d_light)
+{
+    if(intersectMesh(r,d_light)) return 0.0; //hard shadows for mesh 
+    return intersectSdf(r,d_light); //soft shadows for sdf
 }
 
 void main() {
     
     ivec2 texCoords = ivec2(gl_GlobalInvocationID.xy);
     ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w);
+    uint idx = texCoords.y * bounds.x + texCoords.x; //used for shadow map
 
     if(any(greaterThanEqual(texCoords,bounds))) return;
-
-    vec2 uv = vec2(texCoords)/vec2(bounds);
-    const vec3 worldPos = texture(gbuffer1, uv).xyz;
-    const vec3 worldNormal = texture(gbuffer2, uv).xyz;
-    vec3 epsilon = worldNormal * 0.0001;
-    vec3 rayOrigin = worldPos+epsilon;
+   
     
-    float shadowCoeff = 1.0;
+    vec2 uv = vec2(texCoords)/vec2(bounds)+ (0.5*calculateUvSize());
 
-    float lightContribution = 1.0 / LIGHT_COUNT;
-    for(uint i = 0; i < LIGHT_COUNT; ++i){
-        
-        vec3 rayDirection = normalize(lights[i].position - worldPos);
-        float rdl = dot(rayDirection,worldNormal);
-        
-        if(rdl <= 0) continue; // light is behind
+    const vec4 gb1 = texture(gbuffer1, uv);
+    const vec4 gb2 = texture(gbuffer2, uv); 
 
-        float t_light = distance(lights[i].position , rayOrigin);
-
-        Ray ray = createRay(rayOrigin, rayDirection);
-        shadowCoeff -= hitWorld(ray, t_light) * lightContribution;
-    }    
+    shadowMap[idx] = 1.0; // no shadow
+    float res;
+    if(gb2.w == HYBRID_BACKGROUND_FLAG){
+        res = 1.0;
+        //return;
+    }
+    else{
+        const vec3 worldPos = gb1.xyz;
+        const vec3 worldNormal = gb2.xyz;
+        vec3 rayOrigin = worldPos;
+        for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
+            
+            vec3 rayDirection = normalize(_lights[i].position - worldPos);
+            float rdl = dot(rayDirection,worldNormal);
+            
+            if(rdl < 0){
+                continue;
+            } 
     
-    uint idx = texCoords.y * bounds.x + texCoords.x;
-    shadowMap[idx] = shadowCoeff;
+            float t_light = distance(_lights[i].position , rayOrigin);
+    
+            Ray ray = createRay(rayOrigin, rayDirection);
+            res = hitWorld(ray, t_light); //TODO: Add different shadow maps for each light source
+        }
+        shadowMap[idx] = res;
+    }
+    
+    vec4 shadowColor = vec4(vec3(res),1.0);
+    imageStore(_testShadowMap,texCoords,shadowColor);
 }
