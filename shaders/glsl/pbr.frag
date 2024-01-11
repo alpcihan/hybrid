@@ -61,9 +61,10 @@ void main() {
     float shadowVal = shadowMap[shadowIdx];
 
     vec3 color = vec3(0.0);
+    const vec3 ambient = vec3(0.1);
 	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
         color += ambient * albedo * ao;
-        vec3 Lo =  calculatePBRFromActiveSceneLights(
+        vec3 Lo = calculatePBRLoFromSceneLights(
                 albedo,
                 roughness,
                 metallic,

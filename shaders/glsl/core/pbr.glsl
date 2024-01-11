@@ -113,11 +113,13 @@ vec3 calculatePBRLoFromSceneLights(
     float roughness,
     float metallic,
     in vec3 positionWorld,
-    in vec3 normalWorld,
+    in vec3 N,
     in vec3 viewPos,
     in int i
 ) {
-    vec3 V = normalize(viewPos - positionWorld);     
+    const vec3 F0   = mix(vec3(0.04), albedo, metallic);
+    const vec3 V    = normalize(viewPos - positionWorld); // TODO: pass it as a parameter
+    
     vec3 Lo = vec3(0.0);
 
     // radiance
@@ -131,7 +133,7 @@ vec3 calculatePBRLoFromSceneLights(
     // brdf
     float NDF = distributionGGX(N, H, roughness);        
     float G   = geometrySmith(N, V, L, roughness);      
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);       
         
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;

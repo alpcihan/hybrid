@@ -75,12 +75,13 @@ void main() {
     const vec3 targetNormalWorld = sdfNormal(targetPositionWorld);
 
     vec3 Lo = calculatePBRLoFromSceneLights(
-                targetMat.albedo,                       // albedo
-                targetMat.roughness,                    // roughness
-                targetMat.metallic,                     // metallic
-                targetPositionWorld,                    // position world
-                targetNormalWorld,                      // normal world
-                positionWorld);                         // view pos
+                targetMat.albedo,               // albedo
+                targetMat.roughness,            // roughness
+                targetMat.metallic,             // metallic
+                targetPositionWorld,            // position world
+                targetNormalWorld,              // normal world
+                positionWorld,                  // view pos
+                0);                         
 
     imageStore(_specularReflectionMap, id, vec4(Lo, tHit));
 }

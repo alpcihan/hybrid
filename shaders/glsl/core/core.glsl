@@ -80,10 +80,10 @@ vec4 hybrid_sampleEnvironmentMap(vec3 dir) {
     const float PI = 3.14159265359;
     const vec2 uv = vec2(atan(dir.x, dir.z) / (2.0 * PI) + 0.5, asin(-dir.y) / PI + 0.5);
     return texture(_environmentMap, uv);
+}
 
 vec2 calculateUvSize(){
     return 1.0/(vec2(_projectionParams.z,_projectionParams.w)); 
-
 }
 
 #endif
