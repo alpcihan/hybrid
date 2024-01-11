@@ -108,7 +108,7 @@ float softshadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
         if( res<-1.0 || t>maxt ) break;
     }
     res = max(res,-1.0);
-    return 0.25*(1.0+res)*(1.0+res)*(2.0-res);
+    return smoothstep( -1.0 , 1.0, res );
 }
 
 float softshadow_2( in vec3 ro, in vec3 rd, float mint, float maxt, float w )

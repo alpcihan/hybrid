@@ -70,7 +70,7 @@ bool intersectMesh(in Ray r,in float d_light)
 
 float intersectSdf(in Ray r,in float d_light)
 {
-    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.1); //TODO: Decide the w value wrt. the light features
+    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
 }
 
 //returns 1 if there is a hit between light and rayOrigin
@@ -110,8 +110,7 @@ void main() {
             float rdl = dot(rayDirection,worldNormal);
             
             if(rdl < 0){
-                //shadowMap[idx] = 0.5;
-                continue; // light is behind
+                continue;
             } 
     
             float t_light = distance(_lights[i].position , rayOrigin);
