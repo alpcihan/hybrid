@@ -57,6 +57,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .setComputePass(m_shadowPass)
         .bindInputSet(m_shadowInputSets[0])
         .bindInputSet(m_shadowInputSets[1])
+        .bindInputSet(m_shadowInputSets[2])
         .dispatch((resX+31)/32,(resY+31)/32,1);
           
     // specular reflection map
@@ -268,11 +269,14 @@ void HybridRenderPipeline::_initPasses() {
                 },
                 {   
                     //S1
-                    {tga::BindingType::sampler, 1},  // B0: gbuffer0
-                    {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                    {tga::BindingType::sampler, 1},  // B2: gbuffer2
+                    {tga::BindingType::sampler, 1},   // B0: gbuffer0
+                    {tga::BindingType::sampler, 1},   // B1: gbuffer1
+                    {tga::BindingType::sampler, 1},   // B2: gbuffer2
                     {tga::BindingType::storageBuffer},// B3: shadowMap
-                    {tga::BindingType::storageImage} // B4: Test texture
+                },
+                    //S2
+                {
+                    {tga::BindingType::storageImage}  // B0: Test texture
                 },
             }  
         );
@@ -293,9 +297,13 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_testTexture,4}    // TODO: change binding set and index 
                                    },
-                                   1})
+                                   1}),
+            m_tgai.createInputSet({m_shadowPass,
+                                   {
+                                       {m_testTexture, 0},
+                                   },
+                                   2})
             };
       
         // free
