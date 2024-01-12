@@ -57,6 +57,7 @@ void HybridRenderPipeline::render(const Camera& camera) {
         .setComputePass(m_shadowPass)
         .bindInputSet(m_shadowInputSets[0])
         .bindInputSet(m_shadowInputSets[1])
+        .bindInputSet(m_shadowInputSets[2])
         .dispatch((resX+31)/32,(resY+31)/32,1);
           
     // specular reflection map
@@ -182,10 +183,9 @@ void HybridRenderPipeline::_initPasses() {
     // geometry pass
     {
         // shaders
-        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("game_object_vert.spv"), tga::ShaderType::vertex, m_tgai);
-        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("game_object_frag.spv"), tga::ShaderType::fragment, m_tgai);
+        tga::Shader vs = tga::loadShader(HYBRID_SHADER_PATH("geometry_vert.spv"), tga::ShaderType::vertex, m_tgai);
+        tga::Shader fs = tga::loadShader(HYBRID_SHADER_PATH("geometry_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
-        // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
             // S0
             tga::BindingType::uniformBuffer,  // B0: uniform buffer
@@ -269,11 +269,14 @@ void HybridRenderPipeline::_initPasses() {
                 },
                 {   
                     //S1
-                    {tga::BindingType::sampler, 1},  // B0: gbuffer0
-                    {tga::BindingType::sampler, 1},  // B1: gbuffer1
-                    {tga::BindingType::sampler, 1},  // B2: gbuffer2
+                    {tga::BindingType::sampler, 1},   // B0: gbuffer0
+                    {tga::BindingType::sampler, 1},   // B1: gbuffer1
+                    {tga::BindingType::sampler, 1},   // B2: gbuffer2
                     {tga::BindingType::storageBuffer},// B3: shadowMap
-                    {tga::BindingType::storageImage} // B4: Test texture
+                },
+                    //S2
+                {
+                    {tga::BindingType::storageImage}  // B0: Test texture
                 },
             }  
         );
@@ -294,9 +297,13 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_gBuffer[1], 1},
                                        {m_gBuffer[2], 2},
                                        {m_shadowMap,  3},
-                                       {m_testTexture,4}    // TODO: change binding set and index 
                                    },
-                                   1})
+                                   1}),
+            m_tgai.createInputSet({m_shadowPass,
+                                   {
+                                       {m_testTexture, 0},
+                                   },
+                                   2})
             };
       
         // free
@@ -352,7 +359,6 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_specularReflectionImgPyramid[0], 0},
                                    },
                                    2}),
-
         };
 
         // free
