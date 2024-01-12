@@ -359,7 +359,6 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_specularReflectionImgPyramid[0], 0},
                                    },
                                    2}),
-
         };
 
         // free
