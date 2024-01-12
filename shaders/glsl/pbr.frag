@@ -81,10 +81,10 @@ void main() {
 
     // indirect light
     const float indirectIntensity = 1;
-    vec3 f0 = 0.04 * (1.0 - metallic) + albedo * metallic;
+    vec3 f0 = 0.04 * (1.0 - metallic) + color * metallic;
 
     // indirect diffuse
-    vec3 diffuseColor = (1.0 - metallic) * albedo;
+    vec3 diffuseColor = (1.0 - metallic) * color;
     vec3 indirectDiffuse = irradiance_SphericalHarmonics(normalWorld) * fd_Lambert();
     indirectDiffuse *= diffuseColor;
     color += indirectDiffuse;

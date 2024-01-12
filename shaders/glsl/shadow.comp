@@ -76,7 +76,7 @@ float intersectSdf(in Ray r,in float d_light)
 //returns 1 if there is a hit between light and rayOrigin
 float hitWorld(in Ray r,in float d_light)
 {
-    if(intersectMesh(r,d_light)) return 0.0; //hard shadows for mesh 
+    //if(intersectMesh(r,d_light)) return 0.0; //TODO: Add mesh distance field
     return intersectSdf(r,d_light); //soft shadows for sdf
 }
 
@@ -116,7 +116,7 @@ void main() {
             float t_light = distance(_lights[i].position , rayOrigin);
     
             Ray ray = createRay(rayOrigin, rayDirection);
-            res = hitWorld(ray, t_light); //TODO: Add different shadow maps for each light source
+            res = hitWorld(ray, t_light);
         }
         shadowMap[idx] = res;
     }
