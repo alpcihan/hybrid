@@ -12,8 +12,10 @@
 layout(location = 0) in FragData {
     vec3 positionWorld;
     vec3 normalWorld;
+    vec2 uv;
 } frag;
 
+layout(set = 0, binding = 2) uniform sampler2D colorTex;
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
@@ -29,7 +31,7 @@ void main() {
     const float metallic    = 0.8;
 
     // output
-    gbuffer0        = vec4(albedo,roughness);
+    gbuffer0        = vec4(texture(colorTex, frag.uv).rgb, roughness);
     gbuffer1        = vec4(frag.positionWorld,metallic);
     gbuffer2        = vec4(frag.normalWorld, HYBRID_OBJECT_FLAG);
 }

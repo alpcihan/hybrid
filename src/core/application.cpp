@@ -23,7 +23,7 @@ Application::Application() : m_tgai() {
     m_cameraController = std::make_unique<CameraController>(*m_camera);
 
     // scene
-    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("man/man.obj"), HYBRID_ASSET_PATH("man/man_diffuse.png"));
+    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("spot/spot_triangulated.obj"), HYBRID_ASSET_PATH("spot/spot_texture.png"));
 }
 
 void Application::run() {
