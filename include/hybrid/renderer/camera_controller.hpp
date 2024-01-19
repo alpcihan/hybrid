@@ -1,24 +1,18 @@
 #pragma once
 
 #include "hybrid/renderer/camera.hpp"
+#include "hybrid/renderer/model_controller.hpp"
 
 namespace hybrid {
 
 class CameraController {
-public: 
-    float speed = 3;
-    float turnSpeed = 90;
-
 public:
-    CameraController(Camera& camera);
+    CameraController(Camera& camera, ModelController& modelController);
     void update(float deltaTime);
 
 private:
     Camera& m_camera;
-
-    float m_yaw;
-    float m_pitch;
-    glm::vec3 m_position;
+    ModelController& m_modelController;
 };
 
 }  // namespace hybrid

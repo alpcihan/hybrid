@@ -629,10 +629,9 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_updateModelData() {
-    glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
-                            glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
-    m_gameObject.setModelMatrix(newModelMatrix);  // save new model matrix in the object for future use
-    m_modelData->model = newModelMatrix;          // update model matrix in the scene
+    //glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
+    //                        glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
+    m_modelData->model = m_gameObject.getModelMatrix();          // update model matrix in the scene
 }
 
 }  // namespace hybrid

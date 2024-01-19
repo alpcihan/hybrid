@@ -24,8 +24,8 @@ GameObject::GameObject(const std::string& objPath, const std::string& diffTexPat
     m_diffuseColorTex = tga::loadTexture(diffTexPath, tga::Format::r8g8b8a8_srgb, tga::SamplerMode::linear, Application::get().getInterface());
 }
 
-void GameObject::setModelMatrix(const glm::mat4& model){
-    m_model = model;
-}
+// void GameObject::setModelMatrix(const glm::mat4& model){
+//     m_model = model;
+// }
 
 }  // namespace hybrid
