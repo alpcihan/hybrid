@@ -14,22 +14,25 @@ Application::Application() : m_tgai() {
     s_instance = this;
 
     // window
-    m_screenResolution = std::pair<uint32_t, uint32_t>(640*2, 360*2);
+    m_screenResolution = std::pair<uint32_t, uint32_t>(640 * 2, 360 * 2);
     m_window =
         std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
 
+    // scene
+    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("spaceship/spaceship.obj"),
+                                                HYBRID_ASSET_PATH("spaceship/spaceship_BaseColor_Merged.jpg"));
+    m_modelController = std::make_unique<ModelController>(*m_gameObject);
+
     // camera
     m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first) / m_screenResolution.second);
-    m_cameraController = std::make_unique<CameraController>(*m_camera);
-
-    // scene
-    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("man/man.obj"), HYBRID_ASSET_PATH("man/man_diffuse.png"));
+    m_cameraController = std::make_unique<CameraController>(*m_camera, *m_modelController);
 }
 
 void Application::run() {
     m_tgai.setWindowTitle(*m_window, "hybrid");
 
-    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject); 
+    std::unique_ptr<HybridRenderPipeline> renderPipeline =
+        std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject);
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
@@ -42,6 +45,7 @@ void Application::run() {
         }
 
         m_cameraController->update(deltaTime);
+        m_modelController->update(deltaTime);
         renderPipeline->render(*m_camera);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

@@ -32,7 +32,7 @@ float sdMengerSponge( in vec3 p ) {
     for( int m=0; m<4; m++ ){
         vec3 a = mod( (p - vec3(m+1, m+1, m+1)) *s, 2.0 )-1.0;
         s *= 3.0;
-        vec3 r = abs(1.0 - 3.0*abs(a));
+        vec3 r = abs(2.0 - 3.0*abs(a));
 
         float da = max(r.x,r.y);
         float db = max(r.y,r.z);

@@ -8,7 +8,7 @@ namespace hybrid {
 
 class HybridRenderPipeline {
 public:
-    HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject);
+    HybridRenderPipeline(tga::Window& window, GameObject& gameObject);
 
     void render(const Camera& camera);
 
@@ -22,7 +22,7 @@ private:
     };
 
     struct ModelData {
-        glm::mat4 model;  // to change
+        glm::mat4 model;
     };
 
 private:
@@ -47,7 +47,7 @@ private:
     tga::Buffer m_uniformBuffer;
 
     // scene data
-    hybrid::GameObject m_gameObject;
+    GameObject& m_gameObject;
 
     // model data
     ModelData* m_modelData;
