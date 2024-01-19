@@ -23,7 +23,7 @@ void ModelController::update(float deltaTime) {
     if (tgai.keyDown(window, tga::Key::Up)) m_pitch -= deltaTime * turnSpeed;
     if (tgai.keyDown(window, tga::Key::Down)) m_pitch += deltaTime * turnSpeed;
 
-    //m_pitch = std::clamp(m_pitch, -89.f, 89.f);
+    m_pitch = std::clamp(m_pitch, -89.f, 89.f);
 
     auto rot = glm::mat3_cast(glm::quat(glm::vec3(-glm::radians(m_pitch), glm::radians(m_yaw), 0.f)));
     m_lookDir = rot * WORLD_FORWARD_VECTOR;

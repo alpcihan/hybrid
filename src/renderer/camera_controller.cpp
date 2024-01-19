@@ -15,9 +15,9 @@ void CameraController::update(float deltaTime) {
     glm::vec3 spaceshipPosition = m_modelController.getPosition();
 
     float distanceBehind = 2.f;
-    glm::vec3 newPosition = spaceshipPosition - m_modelController.getLookDir() * distanceBehind;
+    glm::vec3 cameraPosition = spaceshipPosition - m_modelController.getLookDir() * distanceBehind;
 
-    m_camera.m_view = glm::lookAt(newPosition, spaceshipPosition, m_modelController.getUp());
+    m_camera.m_view = glm::lookAt(cameraPosition, spaceshipPosition, m_modelController.getUp());
 }
 
 }  // namespace hybrid

@@ -44,8 +44,8 @@ void Application::run() {
             timer.reset();
         }
 
-        m_cameraController->update(deltaTime);
         m_modelController->update(deltaTime);
+        m_cameraController->update(deltaTime);
         renderPipeline->render(*m_camera);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
