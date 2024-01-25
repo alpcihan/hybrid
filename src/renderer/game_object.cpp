@@ -24,6 +24,17 @@ GameObject::GameObject(const std::string& objPath, const std::string& diffTexPat
     m_diffuseColorTex = tga::loadTexture(diffTexPath, tga::Format::r8g8b8a8_srgb, tga::SamplerMode::linear, Application::get().getInterface());
 }
 
+const tga::ext::TransformMatrix GameObject::getExtTransform() { 
+    
+    return tga::ext::TransformMatrix({
+        {m_model[0].x,m_model[0].y,m_model[0].z,m_model[0].w},
+        {m_model[1].x,m_model[1].y,m_model[1].z,m_model[1].w},
+        {m_model[2].x,m_model[2].y,m_model[2].z,m_model[2].w}
+    }); 
+}
+
+
+
 // void GameObject::setModelMatrix(const glm::mat4& model){
 //     m_model = model;
 // }

@@ -21,6 +21,7 @@ public:
     std::vector<uint32_t>& getIndexList() { return m_indexList; };
     const tga::Texture getDiffuseTexture() const { return m_diffuseColorTex; };
     const glm::mat4& getModelMatrix() const { return m_model; };
+    const tga::ext::TransformMatrix getExtTransform();
     //void setModelMatrix(const glm::mat4& model);
 
 
