@@ -40,7 +40,7 @@ void ModelController::update(float deltaTime) {
 
     m_gameObject.m_model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
                            glm::rotate(glm::mat4(1), glm::radians(270.0f), glm::vec3(1.f, 0.f, 0.f)) *
-                           glm::scale(glm::mat4(1), glm::vec3(0.000005f));
+                           glm::scale(glm::mat4(1), glm::vec3(0.0005f));
 }
 
 }  // namespace hybrid
