@@ -295,6 +295,7 @@ void HybridRenderPipeline::_initPasses() {
                 {
                     {tga::BindingType::storageImage},  // B0: Test texture
                     {tga::BindingType::accelerationStructure}, //B1: Acceleration structure
+                    {tga::BindingType::uniformBuffer}, //B2: model transform
                 },
             }  
         );
@@ -321,6 +322,7 @@ void HybridRenderPipeline::_initPasses() {
                                    {
                                        {m_testTexture, 0},
                                        {m_tlas,        1},
+                                       {m_modelBuffer, 2},
                                    },
                                    2})
             };

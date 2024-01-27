@@ -11,10 +11,6 @@ const glm::vec3 ModelController::WORLD_RIGHT_VECTOR(-1, 0, 0);
 
 ModelController::ModelController(GameObject& gameObject)
     : m_gameObject(gameObject), m_yaw(0), m_pitch(0), m_position(0, 0, 0.5f) {
-
-        m_gameObject.m_model = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) * glm::mat4(1) *
-                           glm::rotate(glm::mat4(1), glm::radians(0.0f), glm::vec3(1.f, 0.f, 0.f)) *
-                           glm::scale(glm::mat4(1), glm::vec3(0.0005f));
     }
 
 void ModelController::update(float deltaTime) {
@@ -43,7 +39,7 @@ void ModelController::update(float deltaTime) {
     if (tgai.keyDown(window, tga::Key::Shift_Left)) m_position += WORLD_UP_VECTOR * deltaTime * moveSpeed;
     if (tgai.keyDown(window, tga::Key::Space)) m_position -= WORLD_UP_VECTOR * deltaTime * moveSpeed;
 
-    m_gameObject.m_model = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) * glm::mat4(1) *
+    m_gameObject.m_model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
                            glm::rotate(glm::mat4(1), glm::radians(0.0f), glm::vec3(1.f, 0.f, 0.f)) *
                            glm::scale(glm::mat4(1), glm::vec3(0.0005f));
 }

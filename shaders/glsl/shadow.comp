@@ -25,6 +25,9 @@ layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
 
 layout(set = 2, binding = 0, rgba16f) uniform image2D _testShadowMap;
 layout(set = 2, binding = 1) uniform accelerationStructureEXT _tlas;
+layout(set = 2, binding = 2) uniform modelData{
+    mat4 _transform;
+};
 
 //layout(set = 2, binding = 2) readonly buffer vertexData{
 //    hybrid_Vertex at[];
@@ -82,7 +85,7 @@ float intersectTLAS(in Ray r){
         gl_RayFlagsTerminateOnFirstHitEXT,
         0xFF,
         r.origin,
-        0.01,
+        0.01,               //TODO: Standardize the ray bias
         r.direction,
         tmax
     );
@@ -103,7 +106,10 @@ float intersectTLAS(in Ray r){
 bool intersectMesh(in Ray r,in float d_light)
 {
     //triangle intersection
-    float t = intersectTLAS(r);
+    mat4 invTransform = inverse(_transform);
+    Ray ray = transformRay(r,invTransform);
+
+    float t = intersectTLAS(ray);
     t= min(d_light,t);
     if(t == d_light) return false;
     return true;

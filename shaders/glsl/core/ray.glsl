@@ -33,4 +33,20 @@ Ray createCameraRay(vec2 uv, in mat4 projectionInverse, in mat4 viewInverse) {
     return createRay(origin, direction);
 }
 
+Ray transformRay(in Ray ray,in mat4 transform){
+
+    Ray r = ray;
+
+    vec4 homogeniousOrigin = vec4(r.origin, 1.0);
+    vec4 homogeniousDirection = vec4(r.direction, 0.0);
+
+    vec4 transformedOrigin = transform * homogeniousOrigin;
+    vec4 transformedDirection =transform * homogeniousDirection;
+
+    r.origin = transformedOrigin.xyz;
+    r.direction = transformedDirection.xyz;
+
+    return r;
+}
+
 #endif
