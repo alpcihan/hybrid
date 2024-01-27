@@ -78,7 +78,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 float intersectTLAS(in Ray r){
 
     rayQueryEXT rayQuery;
-    float tmax = 1000.0;
+
     rayQueryInitializeEXT(
         rayQuery,
         _tlas,
@@ -87,7 +87,7 @@ float intersectTLAS(in Ray r){
         r.origin,
         0.01,               //TODO: Standardize the ray bias
         r.direction,
-        tmax
+        MAX_FLOAT
     );
 
     rayQueryProceedEXT(rayQuery);
@@ -97,7 +97,7 @@ float intersectTLAS(in Ray r){
     
     float t = rayQueryGetIntersectionTEXT(rayQuery, true);
 
-    if(t<0) 
+    if(t<0.001) 
         return MAX_FLOAT;
 
     return t;
@@ -123,8 +123,9 @@ float intersectSdf(in Ray r,in float d_light)
 //returns 1 if there is a hit between light and rayOrigin
 float hitWorld(in Ray r,in float d_light)
 {
-    if(intersectMesh(r,d_light)) return 0.1; //TODO: Add mesh distance field
-    return intersectSdf(r,d_light); //soft shadows for sdf
+    float res = intersectSdf(r,d_light); //soft shadows for sdf
+    if(intersectMesh(r,d_light)) return min(res, 0.3); //TODO: Add mesh distance field
+    return res; 
 }
 
 void main() {
