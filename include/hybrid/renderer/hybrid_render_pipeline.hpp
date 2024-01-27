@@ -61,7 +61,6 @@ private:
     tga::Buffer m_indexBuffer;
 
     //bvh
-    tga::ext::BottomLevelAccelerationStructure m_blas;
     tga::ext::TopLevelAccelerationStructure m_tlas;
 
     // passes

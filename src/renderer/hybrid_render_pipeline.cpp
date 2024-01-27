@@ -178,7 +178,7 @@ void HybridRenderPipeline::_initResources() {
     m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_gameObject.getIndexList())});
     m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index | tga::BufferUsage::accelerationStructureBuildInput, indexListSize, m_indexBufferStage});
 
-    m_blas = m_tgai.createBottomLevelAccelerationStructure(tga::ext::BottomLevelAccelerationStructureInfo{
+    auto blas = m_tgai.createBottomLevelAccelerationStructure(tga::ext::BottomLevelAccelerationStructureInfo{
         m_vertexBuffer,
         m_indexBuffer,
         sizeof(hybrid::Vertex),
@@ -190,7 +190,7 @@ void HybridRenderPipeline::_initResources() {
 
     m_tlas = m_tgai.createTopLevelAccelerationStructure(tga::ext::TopLevelAccelerationStructureInfo{
         {tga::ext::AccelerationStructureInstanceInfo{
-            m_blas,
+            blas,
             m_gameObject.getExtTransform()
         }}
     });
@@ -295,8 +295,6 @@ void HybridRenderPipeline::_initPasses() {
                 {
                     {tga::BindingType::storageImage},  // B0: Test texture
                     {tga::BindingType::accelerationStructure}, //B1: Acceleration structure
-                    //{tga::BindingType::storageBuffer},  //B2 vertex buffer
-                    //{tga::BindingType::storageBuffer},  //B3 index buffer
                 },
             }  
         );
@@ -323,8 +321,6 @@ void HybridRenderPipeline::_initPasses() {
                                    {
                                        {m_testTexture, 0},
                                        {m_tlas,        1},
-                                       //{m_vertexBuffer,2},
-                                       //{m_indexBuffer, 3},
                                    },
                                    2})
             };
