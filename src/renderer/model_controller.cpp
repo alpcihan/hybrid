@@ -1,7 +1,6 @@
-#include "hybrid/renderer/model_controller.hpp"
-
 #include "hybrid/core/application.hpp"
 #include "hybrid/hybrid_shared.hpp"
+#include "hybrid/renderer/model_controller.hpp"
 
 namespace hybrid {
 
@@ -28,6 +27,7 @@ void ModelController::update(float deltaTime) {
 
     auto rot = glm::mat3_cast(glm::quat(glm::vec3(-glm::radians(m_pitch), glm::radians(m_yaw), 0.f)));
     m_lookDir = rot * WORLD_FORWARD_VECTOR;
+    m_upDir = rot * WORLD_UP_VECTOR;
     auto r = rot * WORLD_RIGHT_VECTOR;
 
     if (tgai.keyDown(window, tga::Key::W)) m_position += m_lookDir * deltaTime * moveSpeed;
@@ -40,8 +40,9 @@ void ModelController::update(float deltaTime) {
     if (tgai.keyDown(window, tga::Key::Space)) m_position -= WORLD_UP_VECTOR * deltaTime * moveSpeed;
 
     m_gameObject.m_model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
-                           glm::rotate(glm::mat4(1), glm::radians(0.0f), glm::vec3(1.f, 0.f, 0.f)) *
-                           glm::scale(glm::mat4(1), glm::vec3(0.0005f));
+                           glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(1, 0, 0)) *
+                           glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 0, 1)) *
+                           glm::scale(glm::mat4(1), glm::vec3(0.015f));
 }
 
 }  // namespace hybrid

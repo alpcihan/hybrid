@@ -19,8 +19,9 @@ Application::Application() : m_tgai() {
         std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
 
     // scene
-    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("amy/amy.obj"),
-                                                HYBRID_ASSET_PATH("amy/amy_diffuse.png"));
+    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("FA59AMako/FA59AMako.obj"),
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"));
+  
     m_modelController = std::make_unique<ModelController>(*m_gameObject);
 
     // camera
