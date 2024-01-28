@@ -7,7 +7,7 @@ namespace hybrid {
 CameraController::CameraController(Camera& camera, ModelController& modelController)
     : m_camera(camera), m_modelController(modelController) {}
 
-void CameraController::update(float deltaTime) {
+void CameraController::update() {
     glm::vec3 spaceshipPosition = m_modelController.getPosition();
 
     float distanceBehind = 2.f; // Adjust this value for the desired distance behind

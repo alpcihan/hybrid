@@ -9,7 +9,8 @@ const glm::vec3 ModelController::WORLD_FORWARD_VECTOR(0, 0, -1);
 const glm::vec3 ModelController::WORLD_RIGHT_VECTOR(-1, 0, 0);
 
 ModelController::ModelController(GameObject& gameObject)
-    : m_gameObject(gameObject), m_yaw(0), m_pitch(0), m_position(0, 0, 0.5f) {}
+    : m_gameObject(gameObject), m_yaw(0), m_pitch(0), m_position(0, 0, 0.5f) {
+    }
 
 void ModelController::update(float deltaTime) {
     auto& tgai = Application::get().getInterface();

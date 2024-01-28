@@ -1,6 +1,9 @@
-#version 450
+#version 460
 #extension GL_EXT_nonuniform_qualifier: enable
 #extension GL_GOOGLE_include_directive: enable
+//#extension GL_EXT_ray_tracing : enable
+#extension GL_EXT_ray_query : enable
+
 
 
 //--------------------------------------------------------------------------------------
@@ -21,6 +24,19 @@ layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
 };
 
 layout(set = 2, binding = 0, rgba16f) uniform image2D _testShadowMap;
+layout(set = 2, binding = 1) uniform accelerationStructureEXT _tlas;
+layout(set = 2, binding = 2) uniform modelData{
+    mat4 _transform;
+};
+
+//layout(set = 2, binding = 2) readonly buffer vertexData{
+//    hybrid_Vertex at[];
+//}_vertex;
+//
+//layout(set = 2, binding = 3) readonly buffer indexData{
+//    uint at[];
+//}_index;
+
 //--------------------------------------------------------------------------------------
 // kernel
 //--------------------------------------------------------------------------------------
@@ -59,10 +75,41 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 }
 
 
+float intersectTLAS(in Ray r){
+
+    rayQueryEXT rayQuery;
+
+    rayQueryInitializeEXT(
+        rayQuery,
+        _tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT,
+        0xFF,
+        r.origin,
+        0.01,               //TODO: Standardize the ray bias
+        r.direction,
+        MAX_FLOAT
+    );
+
+    rayQueryProceedEXT(rayQuery);
+
+    if(rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionTriangleEXT)
+        return MAX_FLOAT;
+    
+    float t = rayQueryGetIntersectionTEXT(rayQuery, true);
+
+    if(t<0.001) 
+        return MAX_FLOAT;
+
+    return t;
+}
+
 bool intersectMesh(in Ray r,in float d_light)
 {
     //triangle intersection
-    float t =  triIntersect(r, positions[0],positions[1],positions[2]);
+    mat4 invTransform = inverse(_transform);
+    Ray ray = transformRay(r,invTransform);
+
+    float t = intersectTLAS(ray);
     t= min(d_light,t);
     if(t == d_light) return false;
     return true;
@@ -76,8 +123,9 @@ float intersectSdf(in Ray r,in float d_light)
 //returns 1 if there is a hit between light and rayOrigin
 float hitWorld(in Ray r,in float d_light)
 {
-    //if(intersectMesh(r,d_light)) return 0.0; //TODO: Add mesh distance field
-    return intersectSdf(r,d_light); //soft shadows for sdf
+    float res = intersectSdf(r,d_light); //soft shadows for sdf
+    if(intersectMesh(r,d_light)) return min(res, 0.3); //TODO: Add mesh distance field
+    return res; 
 }
 
 void main() {

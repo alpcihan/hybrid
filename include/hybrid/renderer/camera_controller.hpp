@@ -8,7 +8,7 @@ namespace hybrid {
 class CameraController {
 public:
     CameraController(Camera& camera, ModelController& modelController);
-    void update(float deltaTime);
+    void update();
 
 private:
     Camera& m_camera;

@@ -60,6 +60,9 @@ private:
     tga::StagingBuffer m_indexBufferStage;
     tga::Buffer m_indexBuffer;
 
+    //bvh
+    tga::ext::TopLevelAccelerationStructure m_tlas;
+
     // passes
     tga::RenderPass m_geometryPass;
     tga::RenderPass m_customGeometryPass;

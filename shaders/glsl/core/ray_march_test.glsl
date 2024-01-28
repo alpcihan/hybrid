@@ -66,7 +66,7 @@ vec2 map(in vec3 p) {
     res = minx(res, vec2(sdMengerSponge(p / 4) * 4, 0));
 
     // ground
-    //res = minx(res, vec2(sdZPlane(p, -0.5), -1));
+    res = minx(res, vec2(sdZPlane(p, -5.0), -1));
 
     return res;
 }

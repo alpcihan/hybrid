@@ -18,6 +18,12 @@ struct hybrid_PBRMaterial {
     float metallic;
 };
 
+struct hybrid_Vertex {
+    vec4 position;  //w: not used    
+    vec4 normal;    //w: not used
+    vec4 uv;        //z,w: not used
+};
+
 //--------------------------------------------------------------------------------------
 // default layouts
 //--------------------------------------------------------------------------------------

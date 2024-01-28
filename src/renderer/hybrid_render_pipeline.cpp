@@ -172,11 +172,28 @@ void HybridRenderPipeline::_initResources() {
     // init scene buffers (vertexBuffer and indexBuffer)
     size_t vertexListSize = m_gameObject.getVertexList().size() * sizeof(hybrid::Vertex);
     m_vertexBufferStage = m_tgai.createStagingBuffer({vertexListSize, tga::memoryAccess(m_gameObject.getVertexList())});
-    m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex, vertexListSize, m_vertexBufferStage});
+    m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex | tga::BufferUsage::accelerationStructureBuildInput, vertexListSize, m_vertexBufferStage});
 
     size_t indexListSize = m_gameObject.getIndexList().size() * sizeof(uint32_t);
     m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_gameObject.getIndexList())});
-    m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index, indexListSize, m_indexBufferStage});
+    m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index | tga::BufferUsage::accelerationStructureBuildInput, indexListSize, m_indexBufferStage});
+
+    auto blas = m_tgai.createBottomLevelAccelerationStructure(tga::ext::BottomLevelAccelerationStructureInfo{
+        m_vertexBuffer,
+        m_indexBuffer,
+        sizeof(hybrid::Vertex),
+        tga::Format::r32g32b32_sfloat,
+        (uint32_t)m_gameObject.getIndexList().size(),
+        0,
+        0
+    });
+
+    m_tlas = m_tgai.createTopLevelAccelerationStructure(tga::ext::TopLevelAccelerationStructureInfo{
+        {tga::ext::AccelerationStructureInstanceInfo{
+            blas,
+            m_gameObject.getExtTransform()
+        }}
+    });
 }
 
 void HybridRenderPipeline::_initPasses() {
@@ -276,7 +293,9 @@ void HybridRenderPipeline::_initPasses() {
                 },
                     //S2
                 {
-                    {tga::BindingType::storageImage}  // B0: Test texture
+                    {tga::BindingType::storageImage},  // B0: Test texture
+                    {tga::BindingType::accelerationStructure}, //B1: Acceleration structure
+                    {tga::BindingType::uniformBuffer}, //B2: model transform
                 },
             }  
         );
@@ -302,6 +321,8 @@ void HybridRenderPipeline::_initPasses() {
             m_tgai.createInputSet({m_shadowPass,
                                    {
                                        {m_testTexture, 0},
+                                       {m_tlas,        1},
+                                       {m_modelBuffer, 2},
                                    },
                                    2})
             };
