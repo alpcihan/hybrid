@@ -27,7 +27,7 @@ const tga::ext::TransformMatrix GameObject::getExtTransform() {
     return tga::ext::TransformMatrix({
         {m_model[0][0],m_model[0][1],m_model[0][2],m_model[0][3]},
         {m_model[1][0],m_model[1][1],m_model[1][2],m_model[1][3]},
-        {m_model[2][0],m_model[2][1],m_model[2][2],m_model[2][3]}
+        {m_model[2][0],m_model[2][1],m_model[2][2],m_model[2][3]},
     }); 
 }
 
