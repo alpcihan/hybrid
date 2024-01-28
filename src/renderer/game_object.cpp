@@ -25,16 +25,10 @@ GameObject::GameObject(const std::string& objPath, const std::string& diffTexPat
 const tga::ext::TransformMatrix GameObject::getExtTransform() { 
     
     return tga::ext::TransformMatrix({
-        {m_model[0].x,m_model[0].y,m_model[0].z,m_model[0].w},
-        {m_model[1].x,m_model[1].y,m_model[1].z,m_model[1].w},
-        {m_model[2].x,m_model[2].y,m_model[2].z,m_model[2].w}
+        {m_model[0][0],m_model[0][1],m_model[0][2],m_model[0][3]},
+        {m_model[1][0],m_model[1][1],m_model[1][2],m_model[1][3]},
+        {m_model[2][0],m_model[2][1],m_model[2][2],m_model[2][3]}
     }); 
 }
-
-
-
-// void GameObject::setModelMatrix(const glm::mat4& model){
-//     m_model = model;
-// }
 
 }  // namespace hybrid
