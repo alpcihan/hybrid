@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hybrid/renderer/game_object.hpp"
 #include "hybrid/core/application.hpp"
 
