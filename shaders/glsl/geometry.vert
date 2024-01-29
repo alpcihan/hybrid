@@ -31,7 +31,7 @@ layout(location = 0) out FragData {
 //--------------------------------------------------------------------------------------
 void main() {
     vec4 worldPos = _model * vec4(position, 1);
-    vec4 worldNormal = _model * vec4(normal, 1);
+    vec3 worldNormal = normalize((_model * vec4(normal, 0)).xyz);
 
     gl_Position = _projection * _view * worldPos;
     

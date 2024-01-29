@@ -1,6 +1,7 @@
-#version 450
+#version 460
 #extension GL_EXT_nonuniform_qualifier : enable
 #extension GL_GOOGLE_include_directive : enable
+#extension GL_EXT_ray_query: enable
 
 //--------------------------------------------------------------------------------------
 // includes
@@ -21,6 +22,105 @@ layout(local_size_y = 32) in;
 HYBRID_CORE_GBUFFER_SAMPLER
 layout(set = 2, binding = 0, rgba16f) writeonly uniform image2D _specularReflectionMap;
 
+layout(set = 2, binding = 1) uniform accelerationStructureEXT _tlas;
+layout(set = 2, binding = 2) readonly buffer VertexData{
+    hybrid_Vertex at[];
+}_vertices;
+
+layout(set = 2, binding = 3) readonly buffer IndexData{
+    uint at[];
+}_indices;
+
+layout(set = 2, binding = 4) uniform modelData{
+    mat4 _transform;            //TODO: Pass inverse transform
+};
+
+//--------------------------------------------------------------------------------------
+// mesh specular
+//--------------------------------------------------------------------------------------
+float intersectTLAS(in Ray r, in float near, in float far ,out vec2 bary, out int primitiveIdx){ //TODO: Put this function in a glsl header 
+
+    rayQueryEXT rayQuery;
+
+    rayQueryInitializeEXT(
+        rayQuery,
+        _tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT,
+        0xFF,
+        r.origin,
+        near,               //TODO: Standardize the ray bias
+        r.direction,
+        far
+    );
+
+    rayQueryProceedEXT(rayQuery);
+
+    if(rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionTriangleEXT)
+        return MAX_FLOAT;
+    
+    float t = rayQueryGetIntersectionTEXT(rayQuery, true);
+
+    if(t<0) 
+        return MAX_FLOAT;
+
+    bary = rayQueryGetIntersectionBarycentricsEXT(rayQuery,true);
+    primitiveIdx = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery,true);
+
+    return t;
+}
+
+
+float intersectMesh(in Ray r, in float near, in float far, out vec3 hitNormal, out vec3 targetPositionWorld, out hybrid_PBRMaterial targetMat){
+
+    mat4 invTransform = inverse(_transform);
+    Ray ray = transformRay(r,invTransform);
+
+    vec2 bary;
+    int primitiveIdx;
+
+    float t = intersectTLAS(ray,
+                            near,
+                            far,
+                            bary,           //out
+                            primitiveIdx);  //out
+
+    if(t < MAX_FLOAT){ //If hit calculate normal, position, material
+
+        uint i0 = _indices.at[3 * primitiveIdx];
+        uint i1 = _indices.at[3 * primitiveIdx + 1];
+        uint i2 = _indices.at[3 * primitiveIdx + 2];
+
+        hybrid_Vertex v0 = _vertices.at[i0];
+        hybrid_Vertex v1 = _vertices.at[i1];
+        hybrid_Vertex v2 = _vertices.at[i2];
+
+        hitNormal = normalize((1-bary.x-bary.y)*v0.normal+bary.x*v1.normal+bary.y*v2.normal).xyz;
+        targetPositionWorld = ((1 - bary.x - bary.y) * v0.position + bary.x * v1.position + bary.y * v2.position).xyz;
+        
+        //vec2 hitUV = (1 - bary.x - bary.y) * v0.uv + bary.x * v1.uv + bary.y * v2.uv;
+        targetMat.albedo     = vec3(1,0.1,0.1);
+        targetMat.roughness  = 0.5;
+        targetMat.metallic   = 0.8;
+
+        targetPositionWorld = (_transform * vec4(targetPositionWorld, 1.0)).xyz;
+        hitNormal = (_transform * vec4(hitNormal,0.0)).xyz;
+    }
+
+    return t;
+
+}
+
+float intersectSdf(in Ray r, in float near, in float far, inout vec3 worldPos, inout hybrid_PBRMaterial material){
+
+    return rayCast(
+                    r.origin,          // ray origin
+                    r.direction,       // ray direction
+                    near,              // near distance
+                    far,               // far distance
+                    worldPos,          // position world (out)
+                    material           // material (out)
+            );
+}
 //--------------------------------------------------------------------------------------
 // program
 //--------------------------------------------------------------------------------------
@@ -51,18 +151,34 @@ void main() {
     const vec3 toSurface    = normalize(positionWorld - viewPos);
     const vec3 rayDir       = normalize(reflect(toSurface, normalWorld));
     Ray ray = createRay(positionWorld + rayDir * 0.0001, rayDir);
-
-    // ray march
-    hybrid_PBRMaterial targetMat;
+    
+    vec3 targetNormalWorld;
     vec3 targetPositionWorld;
-    float tHit = rayCast(
-                    ray.origin,                         // ray origin
-                    ray.direction,                      // ray direction
+    hybrid_PBRMaterial targetMat;
+
+    // mesh intersect(ray trace)
+    float tHitMesh = intersectMesh(
+                    ray,                                // ray
                     _projectionParams[0],               // near distance
-                    _projectionParams[1],               // far distance
+                    _projectionParams[1],               // far distance 
+                    targetNormalWorld,                  // normal (out)
                     targetPositionWorld,                // position world (out)
                     targetMat                           // material (out)
-    );
+                );
+
+     // ray march
+    hybrid_PBRMaterial sdfTargetMat;
+    vec3 sdfTargetPositionWorld;
+
+    float tHitSdf = intersectSdf(
+                    ray,                                // ray
+                    _projectionParams[0],               // near distance
+                    _projectionParams[1],               // far distance
+                    sdfTargetPositionWorld,                // position world (out)
+                    sdfTargetMat                           // material (out)
+                );
+
+    float tHit= min(tHitMesh,tHitSdf);
 
     if(tHit >= _projectionParams[1]) {
         const vec4 environmentColor = hybrid_sampleEnvironmentMap(ray.direction);
@@ -70,9 +186,13 @@ void main() {
         // imageStore(_specularReflectionMap, id, vec4(0,0,0, MAX_FLOAT));
         return;
     } 
-    
-    // get normal (TODO: only if sdf)
-    const vec3 targetNormalWorld = sdfNormal(targetPositionWorld);
+
+    // get normal if hit sdf
+    if(tHitMesh> tHitSdf){
+        targetNormalWorld  = sdfNormal(targetPositionWorld);
+        targetMat = sdfTargetMat;
+        targetPositionWorld = sdfTargetPositionWorld;
+    }
 
     vec3 Lo = calculatePBRLoFromSceneLights(
                 targetMat.albedo,               // albedo

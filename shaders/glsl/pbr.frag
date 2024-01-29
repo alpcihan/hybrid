@@ -100,6 +100,7 @@ void main() {
     color = pow(color, vec3(1.0/2.2));  
 
     //color = vec3(shadowVal);
+    //color = normalWorld.xyz;
 
     // output  
     fragOut = vec4(color, gb2.w);  

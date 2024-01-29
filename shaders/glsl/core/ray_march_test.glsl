@@ -63,9 +63,9 @@ vec2 minx(vec2 v1, vec2 v2) {
 vec2 map(in vec3 p) {
     vec2 res = vec2(MAX_FLOAT, 0); // x: distance -> y: material id | TODO: consider int material id?
 
-    res = minx(res, vec2(de(p), -1));
+    //res = minx(res, vec2(de(p), -1));
 
-    //res = minx(res, vec2(sdMengerSponge((p+vec3(0.0, -2.0,0.0)) / 4) * 4, 0));
+    res = minx(res, vec2(sdMengerSponge((p) / 4) * 4, 0));
     
     return res;
 }
