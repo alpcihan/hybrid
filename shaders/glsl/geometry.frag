@@ -26,9 +26,8 @@ HYBRID_CORE_GBUFFER_TARGET
 //--------------------------------------------------------------------------------------
 void main() {
     // material
-    const vec3  albedo      = vec3(0.8);
-    const float roughness   = 0.9;
-    const float metallic    = 0.2;
+    const float roughness   = 0.9; //TODO: Remove these
+    const float metallic    = 0.2; //TODO: Remove these
 
     // output
     gbuffer0        = vec4(texture(colorTex, frag.uv).rgb, roughness);

@@ -135,9 +135,9 @@ void HybridRenderPipeline::_initResources() {
     const auto [resX, resY] = Application::get().getScreenResolution();
 
     // gbuffer
-    m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
+    m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}),
+                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}),
+                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear})};
     
     // scene target map
     m_sceneTargetMap = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
@@ -158,7 +158,7 @@ void HybridRenderPipeline::_initResources() {
 
     // hdri
     std::cout << "loading hdri...\n"; 
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
+    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, m_tgai, false);
 
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
@@ -357,6 +357,9 @@ void HybridRenderPipeline::_initPasses() {
                 {tga::BindingType::storageBuffer},  //B2: vertex buffer
                 {tga::BindingType::storageBuffer}, //B3: index buffer
                 {tga::BindingType::uniformBuffer}, //B4: model transform
+                {tga::BindingType::sampler},        //B5: albedo
+                //{tga::BindingType::sampler},        //B5: metalness 
+                //{tga::BindingType::sampler},        //B5: roughness 
             }   
         });
 
@@ -385,7 +388,10 @@ void HybridRenderPipeline::_initPasses() {
                                        {m_tlas, 1},
                                        {m_vertexBuffer, 2},
                                        {m_indexBuffer, 3},
-                                       {m_modelBuffer, 4}
+                                       {m_modelBuffer, 4},
+                                       {m_gameObject.getDiffuseTexture(), 5}
+                                       //{m_gameObject.getMetalness(), 6},
+                                       //{m_gameObject.getRoughness(), 7},
                                    },
                                    2}),
         };

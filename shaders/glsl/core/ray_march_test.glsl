@@ -66,6 +66,8 @@ vec2 map(in vec3 p) {
     //res = minx(res, vec2(de(p), -1));
 
     res = minx(res, vec2(sdMengerSponge((p) / 4) * 4, 0));
+
+    res = minx(res, vec2(sdZPlane(p, 0), -1));
     
     return res;
 }
@@ -93,9 +95,9 @@ float rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 posit
                 //mat.albedo     = vec3(1,0,0);
                 //mat.roughness  = (mod(res.y, 7)) / 7;
                 //mat.metallic   = (res.y / 7) / 7;
-                mat.albedo     = vec3(1,0.1,0.1);
-                mat.roughness  = 0.5;
-                mat.metallic   = 0.8;
+                mat.albedo     = vec3(1.0);
+                mat.roughness  = 0.0;
+                mat.metallic   = 1.0;
             } else {
                 mat.albedo     = RAY_MARCH_ALBEDOS[abs(int(res.y)+1)];
                 mat.roughness  = 0.4;

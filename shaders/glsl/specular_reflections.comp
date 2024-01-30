@@ -34,6 +34,11 @@ layout(set = 2, binding = 3) readonly buffer IndexData{
 layout(set = 2, binding = 4) uniform modelData{
     mat4 _transform;            //TODO: Pass inverse transform
 };
+layout(set = 2, binding = 5) uniform sampler2D _albedoMap;
+//layout(set = 2, binding = 6) uniform sampler2D _metalnessMap;
+//layout(set = 2, binding = 7) uniform sampler2D _roughnessMap;
+
+
 
 //--------------------------------------------------------------------------------------
 // mesh specular
@@ -97,10 +102,11 @@ float intersectMesh(in Ray r, in float near, in float far, out vec3 hitNormal, o
         hitNormal = normalize((1-bary.x-bary.y)*v0.normal+bary.x*v1.normal+bary.y*v2.normal).xyz;
         targetPositionWorld = ((1 - bary.x - bary.y) * v0.position + bary.x * v1.position + bary.y * v2.position).xyz;
         
-        //vec2 hitUV = (1 - bary.x - bary.y) * v0.uv + bary.x * v1.uv + bary.y * v2.uv;
-        targetMat.albedo     = vec3(1,0.1,0.1);
-        targetMat.roughness  = 0.5;
-        targetMat.metallic   = 0.8;
+        vec2 hitUv = (1 - bary.x - bary.y) * v0.uv.xy + bary.x * v1.uv.xy + bary.y * v2.uv.xy;
+
+        targetMat.albedo     = texture(_albedoMap, hitUv).xyz;
+        targetMat.roughness  = 0.5; //TODO: get it from material roughness
+        targetMat.metallic   = 0.8; //TODO: get it from material metalness
 
         targetPositionWorld = (_transform * vec4(targetPositionWorld, 1.0)).xyz;
         hitNormal = (_transform * vec4(hitNormal,0.0)).xyz;
@@ -203,5 +209,9 @@ void main() {
                 positionWorld,                  // view pos
                 0);                         
 
+    float ambient = 0.1; //TODO: Use better ambient scale
+    Lo += targetMat.albedo * ambient;
+    
+    //imageStore(_specularReflectionMap, id, vec4(targetMat.albedo, tHit));
     imageStore(_specularReflectionMap, id, vec4(Lo, tHit));
 }
