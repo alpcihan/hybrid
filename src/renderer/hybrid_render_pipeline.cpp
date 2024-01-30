@@ -207,7 +207,9 @@ void HybridRenderPipeline::_initPasses() {
             // S0
             tga::BindingType::uniformBuffer,  // B0: uniform buffer
             tga::BindingType::uniformBuffer,  // B1: model buffer
-            tga::BindingType::sampler         // B2: diffTex buffer
+            tga::BindingType::sampler,         // B2: diffTex buffer
+            tga::BindingType::sampler,        // B3: metalness 
+            tga::BindingType::sampler,        // B4: roughness 
         }}});
 
         // pass
@@ -226,7 +228,9 @@ void HybridRenderPipeline::_initPasses() {
                                     {
                                         {m_uniformBuffer, 0}, 
                                         {m_modelBuffer, 1}, 
-                                        {m_gameObject.getDiffuseTexture(), 2}
+                                        {m_gameObject.getDiffuseTexture(), 2},
+                                        {m_gameObject.getSpecularTexture(), 3},
+                                        {m_gameObject.getRoughnessTexture(), 4}
                                     }, 
                                     0}),
         };
@@ -358,8 +362,6 @@ void HybridRenderPipeline::_initPasses() {
                 {tga::BindingType::storageBuffer}, //B3: index buffer
                 {tga::BindingType::uniformBuffer}, //B4: model transform
                 {tga::BindingType::sampler},        //B5: albedo
-                //{tga::BindingType::sampler},        //B5: metalness 
-                //{tga::BindingType::sampler},        //B5: roughness 
             }   
         });
 

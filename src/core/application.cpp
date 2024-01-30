@@ -20,7 +20,9 @@ Application::Application() : m_tgai() {
 
     // scene
     m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("FA59AMako/FA59AMako.obj"),
-                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"));
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"),
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_Glossiness.png"),
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_Roughness.png"));
   
     m_modelController = std::make_unique<ModelController>(*m_gameObject);
 
