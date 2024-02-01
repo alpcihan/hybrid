@@ -28,12 +28,6 @@ void Application::run(void (*onUpdate)()) {
     std::unique_ptr<HybridRenderPipeline> renderPipeline =
         std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject);
     
-    // scene
-    m_modelController = std::make_unique<ModelController>(*m_gameObject);
-
-    // camera
-    m_cameraController = std::make_unique<CameraController>(*m_camera, *m_modelController);
-
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
         // update time
@@ -44,8 +38,6 @@ void Application::run(void (*onUpdate)()) {
         // user callback
         if(onUpdate) onUpdate();
 
-        // m_modelController->update(deltaTime);
-        // m_cameraController->update();
         renderPipeline->render(*m_camera);
     }
 }

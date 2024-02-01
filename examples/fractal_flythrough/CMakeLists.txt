@@ -1,4 +1,8 @@
-add_executable(fractal_flythrough fractal_flythrough.cpp)
+add_executable(fractal_flythrough 
+    model_controller.hpp
+    model_controller.cpp
+    fractal_flythrough.cpp)
+
 target_link_libraries(fractal_flythrough PUBLIC hybrid_lib)
 
 if(WIN32)

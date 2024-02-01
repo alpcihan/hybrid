@@ -9,6 +9,8 @@ public:
     Camera(float aspectRatio, float nearPlane = 0.01, float farPlane = 1000);
     virtual ~Camera() = default;
 
+    void setView(const glm::mat4& view) { m_view = view; }
+
     const glm::mat4& getProjection() const { return m_projection; }
     const glm::mat4& getView() const { return m_view; }
     float getAspectRatio() const { return m_aspectRatio; }
@@ -21,8 +23,6 @@ protected:
     float m_aspectRatio;
     float m_nearPlane;
     float m_farPlane;
-
-friend class CameraController;
 };
 
 }  // namespace hybrid
