@@ -20,7 +20,9 @@ Application::Application() : m_tgai() {
 
     // scene
     m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("FA59AMako/FA59AMako.obj"),
-                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"));
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"),
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_Glossiness.png"),
+                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_Roughness.png"));
   
     m_modelController = std::make_unique<ModelController>(*m_gameObject);
 
@@ -40,7 +42,7 @@ void Application::run() {
         const float deltaTime = timer.elapsed();
         // update time
         {
-            // std::cout << "FPS: " << 1 / deltaTime << "\n";
+            //std::cout << "FPS: " << 1 / deltaTime << "\n";
             Time::_update(deltaTime);
             timer.reset();
         }
@@ -49,7 +51,7 @@ void Application::run() {
         m_cameraController->update();
         renderPipeline->render(*m_camera);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 

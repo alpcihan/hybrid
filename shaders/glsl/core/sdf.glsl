@@ -45,4 +45,42 @@ float sdMengerSponge( in vec3 p ) {
     return d;
 }
 
+
+
+//https://www.shadertoy.com/view/XsBXWt
+
+// 2D rotation function
+mat2 rot(float a) {
+	return mat2(cos(a),sin(a),-sin(a),cos(a));	
+}
+
+// "Amazing Surface" fractal
+vec4 formula(vec4 p) {
+		p.xz = abs(p.xz+1.)-abs(p.xz-1.)-p.xz;
+		p.y-=.25;
+		p.xy*=rot(radians(35.));
+		p=p*2./clamp(dot(p.xyz,p.xyz),.2,1.);
+	return p;
+}
+
+// Distance function
+float de(vec3 pos) {
+
+    float t = _time;
+	pos.y+=sin(pos.z-t*6.)*.15; //waves!
+	float hid=0.;
+	vec3 tpos=pos;
+	tpos.z=abs(3.-mod(tpos.z,6.));
+	vec4 p=vec4(tpos,1.);
+	for (int i=0; i<4; i++) {p=formula(p);}
+	float fr=(length(max(vec2(0.),p.yz-1.5))-1.)/p.w;
+	float ro=max(abs(pos.x+1.)-.3,pos.y-.35);
+		  ro=max(ro,-max(abs(pos.x+1.)-.1,pos.y-.5));
+	pos.z=abs(.25-mod(pos.z,.5));
+		  ro=max(ro,-max(abs(pos.z)-.2,pos.y-.3));
+		  ro=max(ro,-max(abs(pos.z)-.01,-pos.y+.32));
+	float d=min(fr,ro);
+	return d;
+}
+
 #endif
