@@ -2,7 +2,7 @@
 
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
-#include "hybrid/renderer/game_object.hpp"
+#include "hybrid/core/game_object.hpp"
 
 namespace hybrid {
 

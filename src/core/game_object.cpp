@@ -1,4 +1,4 @@
-#include "hybrid/renderer/game_object.hpp"
+#include "hybrid/core/game_object.hpp"
 #include "hybrid/core/application.hpp"
 
 namespace hybrid {
