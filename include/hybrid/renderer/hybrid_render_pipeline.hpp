@@ -8,7 +8,7 @@ namespace hybrid {
 
 class HybridRenderPipeline {
 public:
-    HybridRenderPipeline(tga::Window& window, GameObject& gameObject);
+    HybridRenderPipeline(tga::Window& window, GameObject& gameObject, tga::Texture hdri); // TODO: read game objects and hdri from scene class
 
     void render(const Camera& camera);
 

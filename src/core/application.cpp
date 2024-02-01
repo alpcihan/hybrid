@@ -2,8 +2,6 @@
 
 #include "hybrid/core/time.hpp"
 #include "hybrid/core/timer.hpp"
-#include "hybrid/renderer/hybrid_render_pipeline.hpp"
-#include "hybrid/renderer/perspective_camera.hpp"
 
 namespace hybrid {
 
@@ -25,9 +23,8 @@ void Application::init(const std::string& name, uint32_t width, uint32_t height)
 }
 
 void Application::run(void (*onUpdate)()) {
-    std::unique_ptr<HybridRenderPipeline> renderPipeline =
-        std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject);
-    
+    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject, m_hdri);
+           
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
         // update time

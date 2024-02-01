@@ -3,6 +3,7 @@
 #include "hybrid/hybrid_shared.hpp"
 #include "hybrid/renderer/camera.hpp"
 #include "hybrid/core/game_object.hpp"
+#include "hybrid/renderer/hybrid_render_pipeline.hpp"
 
 namespace hybrid {
 
@@ -20,7 +21,8 @@ public:
     std::pair<uint32_t, uint32_t> getScreenResolution() const { return m_screenResolution; }
 
     void setGameObject(std::shared_ptr<GameObject> gameObject) { m_gameObject = gameObject; }
-    void setCamera(std::shared_ptr<Camera> camera) {m_camera = camera;}
+    void setCamera(std::shared_ptr<Camera> camera) { m_camera = camera; }
+    void setHDRI(tga::Texture hdri) { m_hdri = hdri; }
 
 public:
     static Application& get();
@@ -37,6 +39,7 @@ private:
 
     // scene (TODO: create a scene system)
     std::shared_ptr<GameObject> m_gameObject;
+    tga::Texture m_hdri;
 
 protected:
     Application();

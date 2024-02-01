@@ -7,8 +7,8 @@
 
 namespace hybrid {
 
-HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject)
-    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject, tga::Texture hdri)
+    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject), m_skybox(hdri) {
     _init();
 }
 
@@ -155,9 +155,6 @@ void HybridRenderPipeline::_initResources() {
             {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}
         ));
     }
-
-    // hdri
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/night.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, m_tgai, false);
 
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
