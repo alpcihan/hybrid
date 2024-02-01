@@ -36,9 +36,6 @@ void onUpdate() {
                                      planeController->getUpDir() * CAMERA_UP_OFFSET;
     glm::vec3 cameraPosition = glm::mix(glm::vec3(camera->getView()[3]), targetCameraPosition, 0.99f);
     camera->setView(glm::lookAt(cameraPosition, planeController->getPosition(), planeController->getWorldUp()));
-
-    std::cout << "Fps: " << 1 / deltaTime << "\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 int main() {
