@@ -22,18 +22,17 @@ void Application::init(const std::string& name, uint32_t width, uint32_t height)
     m_screenResolution = std::pair<uint32_t, uint32_t>(width, height);
     m_window = std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
     m_tgai.setWindowTitle(*m_window, name);
-
-    // scene
-    m_modelController = std::make_unique<ModelController>(*m_gameObject);
-
-    // camera
-    m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first) / m_screenResolution.second);
-    m_cameraController = std::make_unique<CameraController>(*m_camera, *m_modelController);
 }
 
 void Application::run(void (*onUpdate)()) {
     std::unique_ptr<HybridRenderPipeline> renderPipeline =
         std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject);
+    
+    // scene
+    m_modelController = std::make_unique<ModelController>(*m_gameObject);
+
+    // camera
+    m_cameraController = std::make_unique<CameraController>(*m_camera, *m_modelController);
 
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
@@ -43,7 +42,7 @@ void Application::run(void (*onUpdate)()) {
         Time::_update(deltaTime);
         
         // user callback
-        onUpdate();
+        if(onUpdate) onUpdate();
 
         // m_modelController->update(deltaTime);
         // m_cameraController->update();

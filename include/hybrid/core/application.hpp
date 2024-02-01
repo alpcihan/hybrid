@@ -15,13 +15,14 @@ public:
     void operator=(const Application &) = delete;
 
     void init(const std::string& name, uint32_t width, uint32_t height);
-    void run(void (*onUpdate)());
+    void run(void (*onUpdate)() = nullptr);
 
     tga::Interface& getInterface() { return m_tgai; }
     tga::Window getWindow() { return *m_window; }
     std::pair<uint32_t, uint32_t> getScreenResolution() const { return m_screenResolution; }
 
     void setGameObject(std::shared_ptr<GameObject> gameObject) { m_gameObject = gameObject; }
+    void setCamera(std::shared_ptr<Camera> camera) {m_camera = camera;}
 
 public:
     static Application& get();
@@ -34,7 +35,7 @@ private:
     std::pair<uint32_t, uint32_t> m_screenResolution;
     
     // camera
-    std::unique_ptr<Camera> m_camera;
+    std::shared_ptr<Camera> m_camera;
     std::unique_ptr<CameraController> m_cameraController;
 
     // scene

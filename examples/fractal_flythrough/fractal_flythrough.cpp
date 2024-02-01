@@ -1,16 +1,21 @@
 #include "hybrid/hybrid.hpp"
 
-#define APP_NAME "Spaceship Example"
+// application properties
+#define APP_NAME "Fractal Flythrough"
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 360
 
+// camera properties
+#define CAMERA_FOV 30
+
+// model properties
 #define OBJ_PATH "FA59AMako/FA59AMako.obj"
 #define OBJ_BASE_COLOR_MAP_PATH "FA59AMako/FA59AMako_BaseColor.png"
 #define OBJ_GLOSSINESS_MAP_PATH "FA59AMako/FA59AMako_Glossiness.png"
 #define OBJ_ROUGHNESS_MAP_PATH "FA59AMako/FA59AMako_Roughness.png"
 
 void onUpdate() {
-    std::cout << "Fps: " << 1 / hybrid::Time::getDeltaTime() << "\n">;
+    std::cout << "Fps: " << 1 / hybrid::Time::getDeltaTime() << "\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
@@ -25,7 +30,14 @@ int main() {
         HYBRID_ASSET_PATH(OBJ_BASE_COLOR_MAP_PATH),
         HYBRID_ASSET_PATH(OBJ_GLOSSINESS_MAP_PATH),
         HYBRID_ASSET_PATH(OBJ_ROUGHNESS_MAP_PATH));
+
     app.setGameObject(gameObject);
+
+    // create camera
+    const float ASPECT_RATIO = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
+    std::shared_ptr<hybrid::Camera> camera = std::make_shared<hybrid::PerspectiveCamera>(CAMERA_FOV, ASPECT_RATIO);
+    
+    app.setCamera(camera);
 
     app.run(onUpdate);
 
