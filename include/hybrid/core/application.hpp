@@ -10,17 +10,21 @@ namespace hybrid {
 
 class Application {
 public:
-    Application();
     ~Application() = default;
+    Application(Application &other) = delete;
+    void operator=(const Application &) = delete;
 
-    void run();
+    void init(const std::string& name, uint32_t width, uint32_t height);
+    void run(void (*onUpdate)());
 
     tga::Interface& getInterface() { return m_tgai; }
     tga::Window getWindow() { return *m_window; }
     std::pair<uint32_t, uint32_t> getScreenResolution() const { return m_screenResolution; }
 
+    void setGameObject(std::shared_ptr<GameObject> gameObject) { m_gameObject = gameObject; }
+
 public:
-    static Application& get() { return *s_instance; }
+    static Application& get();
 
 private:
     tga::Interface m_tgai;
@@ -34,10 +38,12 @@ private:
     std::unique_ptr<CameraController> m_cameraController;
 
     // scene
-    std::unique_ptr<GameObject> m_gameObject;
+    std::shared_ptr<GameObject> m_gameObject;
     std::unique_ptr<ModelController> m_modelController;
 
-
+protected:
+    Application();
+    
 private:
     static Application *s_instance;
 };

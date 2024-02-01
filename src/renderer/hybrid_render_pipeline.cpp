@@ -157,8 +157,7 @@ void HybridRenderPipeline::_initResources() {
     }
 
     // hdri
-    std::cout << "loading hdri...\n"; 
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, m_tgai, false);
+    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/night.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, m_tgai, false);
 
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
@@ -666,8 +665,6 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_updateModelData() {
-    //glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
-    //                        glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
     m_modelData->model = m_gameObject.getModelMatrix();          // update model matrix in the scene
 }
 
