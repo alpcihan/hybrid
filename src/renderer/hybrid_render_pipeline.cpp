@@ -7,8 +7,8 @@
 
 namespace hybrid {
 
-HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject)
-    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject, tga::Texture hdri)
+    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject), m_skybox(hdri) {
     _init();
 }
 
@@ -155,10 +155,6 @@ void HybridRenderPipeline::_initResources() {
             {resX / scale, resY / scale, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}
         ));
     }
-
-    // hdri
-    std::cout << "loading hdri...\n"; 
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, m_tgai, false);
 
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
@@ -666,8 +662,6 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_updateModelData() {
-    //glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
-    //                        glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
     m_modelData->model = m_gameObject.getModelMatrix();          // update model matrix in the scene
 }
 

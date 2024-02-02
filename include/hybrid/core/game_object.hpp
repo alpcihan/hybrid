@@ -25,8 +25,7 @@ public:
 
     const glm::mat4& getModelMatrix() const { return m_model; };
     const tga::ext::TransformMatrix getExtTransform();
-    //void setModelMatrix(const glm::mat4& model);
-
+    void setModelMatrix(const glm::mat4& model) { m_model = model; }
 
 private:
     std::vector<hybrid::Vertex> m_vertexList;
@@ -36,8 +35,6 @@ private:
     tga::Texture m_roughnessTex;
 
     glm::mat4 m_model = glm::mat4(1);
-
-friend class ModelController;
 };
 
 }  // namespace hybrid
