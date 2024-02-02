@@ -7,9 +7,11 @@
 
 namespace hybrid {
 
-class Application {
+class Application final {  
 public:
-    ~Application() = default;
+    static Application& get();
+
+    ~Application();
     Application(Application &other) = delete;
     void operator=(const Application &) = delete;
 
@@ -24,9 +26,6 @@ public:
     void setCamera(std::shared_ptr<Camera> camera) { m_camera = camera; }
     void setHDRI(tga::Texture hdri) { m_hdri = hdri; }
 
-public:
-    static Application& get();
-
 private:
     tga::Interface m_tgai;
 
@@ -40,12 +39,11 @@ private:
     // scene (TODO: create a scene system)
     std::shared_ptr<GameObject> m_gameObject;
     tga::Texture m_hdri;
-
-protected:
-    Application();
-    
+  
 private:
     static Application *s_instance;
+
+    Application();
 };
 
 }  // namespace hybrid

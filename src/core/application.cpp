@@ -15,6 +15,11 @@ Application& Application::get() {
     return *s_instance; 
 }
 
+Application::~Application() {
+    delete s_instance;
+    s_instance = nullptr;
+}
+
 void Application::init(const std::string& name, uint32_t width, uint32_t height) {
     // window
     m_screenResolution = std::pair<uint32_t, uint32_t>(width, height);
