@@ -43,4 +43,7 @@ if(WIN32)
 endif(WIN32)
 
 # examples
-add_subdirectory(examples)
+set(HYBRID_EXAMPLES_ENABLED ON)
+if(HYBRID_EXAMPLES_ENABLED)
+    add_subdirectory(examples)
+endif()
