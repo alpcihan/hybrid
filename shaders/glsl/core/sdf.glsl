@@ -1,86 +1,49 @@
 #ifndef HYBRID_CORE_SDF
 #define HYBRID_CORE_SDF
 
-//--------------------------------------------------------------------------------------
-// signed distance functions
-//--------------------------------------------------------------------------------------
-// https://iquilezles.org/articles/distfunctions/
-float sdSphere(in vec3 p, float r) {
-    return length(p) - r;
+#include "ray_march_test.glsl"
+
+// https://iquilezles.org/articles/normalsSDF
+vec3 sdf_normal(in vec3 p) {
+    vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
+    return normalize( e.xyy*sdf_map(p+e.xyy).x + 
+					  e.yyx*sdf_map(p+e.yyx).x + 
+					  e.yxy*sdf_map(p+e.yxy).x + 
+					  e.xxx*sdf_map(p+e.xxx).x );  
 }
 
-// https://iquilezles.org/articles/distfunctions/
-float sdBox(in vec3 p, in vec3 b) {
-    vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+// https://iquilezles.org/articles/rmshadows/
+float sdf_softShadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+{
+    float res = 1.0;
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = sdf_map(ro + t*rd).x;
+        res = min( res, h/(w*t) );
+        t += clamp(h, 0.005, 0.50);
+        if( res<-1.0 || t>maxt ) break;
+    }
+    res = max(res,-1.0);
+    return smoothstep( -1.0 , 1.0, res );
 }
 
-// https://iquilezles.org/articles/distfunctions/
-float sdRoundBox(in vec3 p, in vec3 b, float r) {
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
-}
+float sdf_rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 position, out hybrid_PBRMaterial mat) { 
+    float depth = near;
+    for (int i = 0; i < RAY_MARCH_MAX_ITERATION && depth < far; i++) {
+        vec3 p = origin + dir * depth;
+        
+        vec2 res = sdf_map(p);
+        if (res.x < RAY_MARCH_HIT_DISTANCE) {
+            position       = p; 
+            sdf_material(p, mat);
+            return depth;
+        }
 
-float sdZPlane(in vec3 p, in float y) {
-    return p.y - y;
-}
-// https://iquilezles.org/articles/menger/
-float sdMengerSponge( in vec3 p ) {
-    float d = sdBox(p,vec3(1.0));
-    
-    float s = 1.0;
-    for( int m=0; m<4; m++ ){
-        vec3 a = mod( (p - vec3(m+1, m+1, m+1)) *s, 2.0 )-1.0;
-        s *= 3.0;
-        vec3 r = abs(2.0 - 3.0*abs(a));
-
-        float da = max(r.x,r.y);
-        float db = max(r.y,r.z);
-        float dc = max(r.z,r.x);
-        float c = (min(da,min(db,dc))-1.0)/s;
-
-        d = max(d,c);
+        depth += res.x;
     }
 
-    return d;
-}
-
-
-
-//https://www.shadertoy.com/view/XsBXWt
-
-// 2D rotation function
-mat2 rot(float a) {
-	return mat2(cos(a),sin(a),-sin(a),cos(a));	
-}
-
-// "Amazing Surface" fractal
-vec4 formula(vec4 p) {
-		p.xz = abs(p.xz+1.)-abs(p.xz-1.)-p.xz;
-		p.y-=.25;
-		p.xy*=rot(radians(35.));
-		p=p*2./clamp(dot(p.xyz,p.xyz),.2,1.);
-	return p;
-}
-
-// Distance function
-float de(vec3 pos) {
-
-    float t = _time;
-	pos.y+=sin(pos.z-t*6.)*.15; //waves!
-	float hid=0.;
-	vec3 tpos=pos;
-	tpos.z=abs(3.-mod(tpos.z,6.));
-	vec4 p=vec4(tpos,1.);
-	for (int i=0; i<4; i++) {p=formula(p);}
-	float fr=(length(max(vec2(0.),p.yz-1.5))-1.)/p.w;
-	float ro=max(abs(pos.x+1.)-.3,pos.y-.35);
-		  ro=max(ro,-max(abs(pos.x+1.)-.1,pos.y-.5));
-	pos.z=abs(.25-mod(pos.z,.5));
-		  ro=max(ro,-max(abs(pos.z)-.2,pos.y-.3));
-		  ro=max(ro,-max(abs(pos.z)-.01,-pos.y+.32));
-	float d=min(fr,ro);
-	return d;
+    return far;
 }
 
 #endif

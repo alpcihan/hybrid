@@ -3,7 +3,7 @@
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
 
-#define IMG_PYRAMID_SIZE 6
+#define IMG_PYRAMID_SIZE 1
 
 namespace hybrid {
 
@@ -242,7 +242,7 @@ void HybridRenderPipeline::_initPasses() {
         tga::Shader vs =
             tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs =
-            tga::loadShader(HYBRID_SHADER_PATH("ray_march_test_frag.spv"), tga::ShaderType::fragment, m_tgai);
+            tga::loadShader(HYBRID_SHADER_PATH("ray_march_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{

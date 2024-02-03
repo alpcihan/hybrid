@@ -3,14 +3,12 @@
 #extension GL_GOOGLE_include_directive: enable
 #extension GL_EXT_ray_query : enable
 
-
-
 //--------------------------------------------------------------------------------------
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl" //S0
 #include "core/ray.glsl"
-#include "core/ray_march_test.glsl"
+#include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs
@@ -74,7 +72,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
 }
 
 
-float intersectTLAS(in Ray r){
+float intersectTLAS(in Ray r, float d_light){
 
     rayQueryEXT rayQuery;
 
@@ -84,9 +82,9 @@ float intersectTLAS(in Ray r){
         gl_RayFlagsTerminateOnFirstHitEXT,
         0xFF,
         r.origin,
-        0.01,               //TODO: Standardize the ray bias
+        0.001,               //TODO: Standardize the ray bias
         r.direction,
-        MAX_FLOAT
+        d_light
     );
 
     rayQueryProceedEXT(rayQuery);
@@ -102,25 +100,25 @@ float intersectTLAS(in Ray r){
     return t;
 }
 
-bool intersectMesh(in Ray r,in float d_light)
+bool intersectMesh(in Ray r,float d_light)
 {
     //triangle intersection
     mat4 invTransform = inverse(_transform);
     Ray ray = transformRay(r,invTransform);
 
-    float t = intersectTLAS(ray);
+    float t = intersectTLAS(ray,d_light);
     t= min(d_light,t);
     if(t == d_light) return false;
     return true;
 }
 
-float intersectSdf(in Ray r,in float d_light)
+float intersectSdf(in Ray r, float d_light)
 {
-    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
+    return sdf_softShadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
 }
 
 //returns 1 if there is a hit between light and rayOrigin
-float hitWorld(in Ray r,in float d_light)
+float hitWorld(in Ray r, float d_light)
 {
     float res = intersectSdf(r,d_light); //soft shadows for sdf
     if(intersectMesh(r,d_light)) return min(res, 0.3); //TODO: Add mesh distance field
@@ -160,7 +158,7 @@ void main() {
                 continue;
             } 
     
-            float t_light = distance(_lights[i].position , rayOrigin);
+            float t_light = distance(_lights[i].position , rayOrigin) + 0.0001;
     
             Ray ray = createRay(rayOrigin, rayDirection);
             res = hitWorld(ray, t_light);

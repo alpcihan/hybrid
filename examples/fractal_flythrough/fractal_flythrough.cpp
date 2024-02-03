@@ -3,8 +3,8 @@
 
 // application macros
 #define APP_NAME "Fractal Flythrough"
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 360
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
 #define ASSET_PATH(relative) HYBRID_EXAMPLES_PATH("assets/" relative)
 
 // camera macros
