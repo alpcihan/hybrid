@@ -5,6 +5,7 @@
 #define APP_NAME "Fractal Flythrough"
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 360
+#define ASSET_PATH(relative) HYBRID_EXAMPLES_PATH("assets/" relative)
 
 // camera macros
 #define CAMERA_FOV 30
@@ -12,13 +13,13 @@
 #define CAMERA_UP_OFFSET 0.2f
 
 // model macros
-#define OBJ_PATH "FA59AMako/FA59AMako.obj"
-#define OBJ_BASE_COLOR_MAP_PATH "FA59AMako/FA59AMako_BaseColor.png"
-#define OBJ_GLOSSINESS_MAP_PATH "FA59AMako/FA59AMako_Glossiness.png"
-#define OBJ_ROUGHNESS_MAP_PATH "FA59AMako/FA59AMako_Roughness.png"
+#define OBJ_PATH "models/FA59AMako/FA59AMako.obj"
+#define OBJ_BASE_COLOR_MAP_PATH "models/FA59AMako/FA59AMako_BaseColor.png"
+#define OBJ_GLOSSINESS_MAP_PATH "models/FA59AMako/FA59AMako_Glossiness.png"
+#define OBJ_ROUGHNESS_MAP_PATH "models/FA59AMako/FA59AMako_Roughness.png"
 
 // hdri macros
-#define HDRI_PATH "hdri/hdri_4k.hdr"
+#define HDRI_PATH "HDRIs/starry_night_sky_dome_4k.hdr"
 
 std::shared_ptr<hybrid::Camera> camera;
 std::shared_ptr<hybrid::GameObject> plane;
@@ -45,8 +46,10 @@ int main() {
 
     // load plane model (currently only single model loading is supported)
     plane = std::make_shared<hybrid::GameObject>(
-        HYBRID_ASSET_PATH(OBJ_PATH), HYBRID_ASSET_PATH(OBJ_BASE_COLOR_MAP_PATH),
-        HYBRID_ASSET_PATH(OBJ_GLOSSINESS_MAP_PATH), HYBRID_ASSET_PATH(OBJ_ROUGHNESS_MAP_PATH));
+        ASSET_PATH(OBJ_PATH),
+        ASSET_PATH(OBJ_BASE_COLOR_MAP_PATH),
+        ASSET_PATH(OBJ_GLOSSINESS_MAP_PATH),
+        ASSET_PATH(OBJ_ROUGHNESS_MAP_PATH));
     app.setGameObject(plane);
 
     // create camera
@@ -58,7 +61,7 @@ int main() {
     planeController = std::make_unique<ModelController>(plane);
 
     // create hdri
-    tga::Texture hdri = tga::loadTexture(HYBRID_ASSET_PATH(HDRI_PATH), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, app.getInterface(), false);
+    tga::Texture hdri = tga::loadTexture(ASSET_PATH(HDRI_PATH), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::linear, app.getInterface(), false);
     app.setHDRI(hdri);
 
     app.run(onUpdate);
