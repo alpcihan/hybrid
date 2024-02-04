@@ -3,13 +3,13 @@
 
 // application macros
 #define APP_NAME "Fractal Flythrough"
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 360
+#define WINDOW_WIDTH 1280
+#define WINDOW_HEIGHT 720
 #define ASSET_PATH(relative) HYBRID_EXAMPLES_PATH("assets/" relative)
 
 // camera macros
-#define CAMERA_FOV 30
-#define CAMERA_BACK_OFFSET 2.f
+#define CAMERA_FOV 35
+#define CAMERA_BACK_OFFSET 2.25f
 #define CAMERA_UP_OFFSET 0.2f
 
 // model macros
@@ -19,7 +19,7 @@
 #define OBJ_ROUGHNESS_MAP_PATH "models/FA59AMako/FA59AMako_Roughness.png"
 
 // hdri macros
-#define HDRI_PATH "HDRIs/starry_night_sky_dome_4k.hdr"
+#define HDRI_PATH "HDRIs/village_cloudy_sky_dome.hdr"
 
 std::shared_ptr<hybrid::Camera> camera;
 std::shared_ptr<hybrid::GameObject> plane;

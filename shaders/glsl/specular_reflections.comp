@@ -7,7 +7,7 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
-#include "core/ray_march_test.glsl"
+#include "core/sdf.glsl"
 #include "core/pbr.glsl"
 
 //--------------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ float intersectMesh(in Ray r, in float near, in float far, out vec3 hitNormal, o
 
 float intersectSdf(in Ray r, in float near, in float far, inout vec3 worldPos, inout hybrid_PBRMaterial material){
 
-    return rayCast(
+    return sdf_rayCast(
                     r.origin,          // ray origin
                     r.direction,       // ray direction
                     near,              // near distance
@@ -195,7 +195,7 @@ void main() {
 
     // get normal if hit sdf
     if(tHitMesh> tHitSdf){
-        targetNormalWorld  = sdfNormal(targetPositionWorld);
+        targetNormalWorld  = sdf_normal(targetPositionWorld);
         targetMat = sdfTargetMat;
         targetPositionWorld = sdfTargetPositionWorld;
     }

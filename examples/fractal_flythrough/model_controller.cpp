@@ -34,10 +34,13 @@ void ModelController::update(float deltaTime) {
     if (tgai.keyDown(window, tga::Key::Shift_Left)) m_position += WORLD_UP_VECTOR * deltaTime * moveSpeed;
     if (tgai.keyDown(window, tga::Key::Space)) m_position -= WORLD_UP_VECTOR * deltaTime * moveSpeed;
 
+    m_lookDir = glm::normalize(m_lookDir);
+    m_upDir = glm::normalize(m_upDir);
+
     const auto& model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
                         glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(1, 0, 0)) *
                         glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 0, 1)) *
                         glm::scale(glm::mat4(1), glm::vec3(0.015f));
-
+    
     m_gameObject->setModelMatrix(model);
 }

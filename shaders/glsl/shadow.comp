@@ -3,20 +3,17 @@
 #extension GL_GOOGLE_include_directive: enable
 #extension GL_EXT_ray_query : enable
 
-
-
 //--------------------------------------------------------------------------------------
 // includes
 //--------------------------------------------------------------------------------------
-#include "core/core.glsl" //S0
+#include "core/core.glsl" // S0
 #include "core/ray.glsl"
-#include "core/ray_march_test.glsl"
+#include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs
 //--------------------------------------------------------------------------------------
-
-HYBRID_CORE_GBUFFER_SAMPLER //S1
+HYBRID_CORE_GBUFFER_SAMPLER // S1
 
 layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
     float shadowMap[];
@@ -24,17 +21,9 @@ layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
 
 layout(set = 2, binding = 0, rgba16f) uniform image2D _testShadowMap;
 layout(set = 2, binding = 1) uniform accelerationStructureEXT _tlas;
-layout(set = 2, binding = 2) uniform modelData{
+layout(set = 2, binding = 2) uniform modelData {
     mat4 _transform;
 };
-
-//layout(set = 2, binding = 2) readonly buffer vertexData{
-//    hybrid_Vertex at[];
-//}_vertex;
-//
-//layout(set = 2, binding = 3) readonly buffer indexData{
-//    uint at[];
-//}_index;
 
 //--------------------------------------------------------------------------------------
 // kernel
@@ -43,22 +32,10 @@ layout(local_size_x = 32) in;
 layout(local_size_y = 32) in;
 
 //--------------------------------------------------------------------------------------
-// Scene data TODO: Take it from CPU
-//--------------------------------------------------------------------------------------
-
-vec3 positions[3] = vec3[](
-    vec3(0.0, -0.5,0.0),
-    vec3(0.5, 0.5, 0.0),
-    vec3(-0.5, 0.5,0.0)
-);
-
-//--------------------------------------------------------------------------------------
 // programm
 //--------------------------------------------------------------------------------------
-
-//return hit distance if no hit returns -1
-float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
-{
+// return hit distance if no hit returns -1
+float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 ) {
     vec3 v1v0 = v1 - v0;
     vec3 v2v0 = v2 - v0;
     vec3 rov0 = r.origin - v0;
@@ -73,9 +50,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
     return t;
 }
 
-
-float intersectTLAS(in Ray r){
-
+float intersectTLAS(in Ray r, float d_light) {
     rayQueryEXT rayQuery;
 
     rayQueryInitializeEXT(
@@ -84,9 +59,9 @@ float intersectTLAS(in Ray r){
         gl_RayFlagsTerminateOnFirstHitEXT,
         0xFF,
         r.origin,
-        0.01,               //TODO: Standardize the ray bias
+        0.1,               // TODO: Standardize the ray bias (For now it is given the same bias as sdf bias)
         r.direction,
-        MAX_FLOAT
+        d_light
     );
 
     rayQueryProceedEXT(rayQuery);
@@ -96,46 +71,41 @@ float intersectTLAS(in Ray r){
     
     float t = rayQueryGetIntersectionTEXT(rayQuery, true);
 
-    if(t<0.001) 
+    if(t<0) 
         return MAX_FLOAT;
 
     return t;
 }
 
-bool intersectMesh(in Ray r,in float d_light)
-{
-    //triangle intersection
+bool intersectMesh(in Ray r,float d_light) {
+    // triangle intersection
     mat4 invTransform = inverse(_transform);
     Ray ray = transformRay(r,invTransform);
 
-    float t = intersectTLAS(ray);
+    float t = intersectTLAS(ray,d_light);
     t= min(d_light,t);
     if(t == d_light) return false;
     return true;
 }
 
-float intersectSdf(in Ray r,in float d_light)
-{
-    return softshadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
+float intersectSdf(in Ray r, float d_light) {
+    return sdf_softShadow(r.origin, r.direction, 0.1 , d_light, 0.2); // TODO: Decide the w value wrt. the light features
 }
 
-//returns 1 if there is a hit between light and rayOrigin
-float hitWorld(in Ray r,in float d_light)
-{
-    float res = intersectSdf(r,d_light); //soft shadows for sdf
-    if(intersectMesh(r,d_light)) return min(res, 0.3); //TODO: Add mesh distance field
-    return res; 
+// returns shadow scaler for the given pixel located in ray origin
+float hitWorld(in Ray r, float d_light) {
+    float res = intersectSdf(r,d_light); // soft shadows for sdf
+    if(intersectMesh(r,d_light)) return min(res, 0.3); // TODO: Add mesh distance field
+    return res;
 }
 
 void main() {
-    
     ivec2 texCoords = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w);
-    uint idx = texCoords.y * bounds.x + texCoords.x; //used for shadow map
+    ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w); // get pixel width and height
+    uint idx = texCoords.y * bounds.x + texCoords.x; // used for shadow map
 
     if(any(greaterThanEqual(texCoords,bounds))) return;
    
-    
     vec2 uv = vec2(texCoords)/vec2(bounds)+ (0.5*calculateUvSize());
 
     const vec4 gb1 = texture(gbuffer1, uv);
@@ -145,13 +115,12 @@ void main() {
     float res;
     if(gb2.w == HYBRID_BACKGROUND_FLAG){
         res = 1.0;
-        //return;
     }
     else{
         const vec3 worldPos = gb1.xyz;
         const vec3 worldNormal = gb2.xyz;
         vec3 rayOrigin = worldPos;
-        for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){
+        for(uint i = 0; i < HYBRID_LIGHT_COUNT; ++i){ //For now only one light source
             
             vec3 rayDirection = normalize(_lights[i].position - worldPos);
             float rdl = dot(rayDirection,worldNormal);
@@ -163,7 +132,7 @@ void main() {
             float t_light = distance(_lights[i].position , rayOrigin);
     
             Ray ray = createRay(rayOrigin, rayDirection);
-            res = hitWorld(ray, t_light);
+            res = pow(hitWorld(ray, t_light), 2);
         }
         shadowMap[idx] = res;
     }

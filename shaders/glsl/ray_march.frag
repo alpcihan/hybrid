@@ -6,7 +6,7 @@
 // includes
 //--------------------------------------------------------------------------------------
 #include "core/core.glsl"
-#include "core/ray_march_test.glsl"
+#include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs 
@@ -28,7 +28,7 @@ void main()  {
     // ray marching
     vec3 positionWorld;
     hybrid_PBRMaterial mat;
-    float depth = rayCast(
+    float depth = sdf_rayCast(
       ray.origin,
       ray.direction,
       _projectionParams[0],
@@ -47,5 +47,5 @@ void main()  {
     gl_FragDepth    = hybrid_linearToZDepth(hybrid_depthToEyeZ(depth, ray.direction));
     gbuffer0        = vec4(mat.albedo, mat.roughness);
     gbuffer1        = vec4(positionWorld, mat.metallic);
-    gbuffer2        = vec4(sdfNormal(positionWorld), HYBRID_OBJECT_FLAG);
+    gbuffer2        = vec4(sdf_normal(positionWorld), HYBRID_OBJECT_FLAG);
 }
