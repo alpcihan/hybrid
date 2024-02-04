@@ -21,7 +21,7 @@ The main motivation of the project is to render triangular geometry and Signed D
 - [x] Ray marched & ray-traced specular reflections
 - [x] HDRI skybox
 - [x] Post-processing
-- [ ] (WIP) Ray marched & hardware-accelerated ray-traced glossy reflections from screen-space roughness
+- [ ] (WIP) Ray marched & ray-traced glossy reflections from screen-space roughness
 
 ## Platforms
 **Hardware:**
