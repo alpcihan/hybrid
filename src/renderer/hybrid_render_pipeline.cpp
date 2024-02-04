@@ -3,12 +3,12 @@
 #include "hybrid/core/application.hpp"
 #include "hybrid/core/time.hpp"
 
-#define IMG_PYRAMID_SIZE 6
+#define IMG_PYRAMID_SIZE 1
 
 namespace hybrid {
 
-HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject)
-    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject) {
+HybridRenderPipeline::HybridRenderPipeline(tga::Window& window, hybrid::GameObject& gameObject, tga::Texture hdri)
+    : m_window(window), m_cmd(), m_tgai(Application::get().getInterface()), m_gameObject(gameObject), m_skybox(hdri) {
     _init();
 }
 
@@ -135,9 +135,9 @@ void HybridRenderPipeline::_initResources() {
     const auto [resX, resY] = Application::get().getScreenResolution();
 
     // gbuffer
-    m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat}),
-                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat})};
+    m_gBuffer = {m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}),
+                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear}),
+                 m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear})};
     
     // scene target map
     m_sceneTargetMap = m_tgai.createTexture({resX, resY, tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
@@ -156,10 +156,6 @@ void HybridRenderPipeline::_initResources() {
         ));
     }
 
-    // hdri
-    std::cout << "loading hdri...\n"; 
-    m_skybox = tga::loadTexture(HYBRID_ASSET_PATH("hdri/hdri_4k.hdr"), tga::Format::r32g32b32a32_sfloat, tga::SamplerMode::nearest, m_tgai, false);
-
     // shadow map
     m_shadowMap = m_tgai.createBuffer({tga::BufferUsage::storage, {sizeof(float)*resX*resY}});
     m_testTexture = m_tgai.createTexture(tga::TextureInfo{resX,resY,tga::Format::r16g16b16a16_sfloat, tga::SamplerMode::linear});
@@ -172,11 +168,11 @@ void HybridRenderPipeline::_initResources() {
     // init scene buffers (vertexBuffer and indexBuffer)
     size_t vertexListSize = m_gameObject.getVertexList().size() * sizeof(hybrid::Vertex);
     m_vertexBufferStage = m_tgai.createStagingBuffer({vertexListSize, tga::memoryAccess(m_gameObject.getVertexList())});
-    m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex | tga::BufferUsage::accelerationStructureBuildInput, vertexListSize, m_vertexBufferStage});
+    m_vertexBuffer = m_tgai.createBuffer({tga::BufferUsage::vertex | tga::BufferUsage::accelerationStructureBuildInput | tga::BufferUsage::storage, vertexListSize, m_vertexBufferStage});
 
     size_t indexListSize = m_gameObject.getIndexList().size() * sizeof(uint32_t);
     m_indexBufferStage = m_tgai.createStagingBuffer({indexListSize, tga::memoryAccess(m_gameObject.getIndexList())});
-    m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index | tga::BufferUsage::accelerationStructureBuildInput, indexListSize, m_indexBufferStage});
+    m_indexBuffer = m_tgai.createBuffer({tga::BufferUsage::index | tga::BufferUsage::accelerationStructureBuildInput | tga::BufferUsage::storage, indexListSize, m_indexBufferStage});
 
     auto blas = m_tgai.createBottomLevelAccelerationStructure(tga::ext::BottomLevelAccelerationStructureInfo{
         m_vertexBuffer,
@@ -207,7 +203,9 @@ void HybridRenderPipeline::_initPasses() {
             // S0
             tga::BindingType::uniformBuffer,  // B0: uniform buffer
             tga::BindingType::uniformBuffer,  // B1: model buffer
-            tga::BindingType::sampler         // B2: diffTex buffer
+            tga::BindingType::sampler,        // B2: diffTex buffer
+            tga::BindingType::sampler,        // B3: metalness 
+            tga::BindingType::sampler,        // B4: roughness 
         }}});
 
         // pass
@@ -226,7 +224,9 @@ void HybridRenderPipeline::_initPasses() {
                                     {
                                         {m_uniformBuffer, 0}, 
                                         {m_modelBuffer, 1}, 
-                                        {m_gameObject.getDiffuseTexture(), 2}
+                                        {m_gameObject.getDiffuseTexture(), 2},
+                                        {m_gameObject.getSpecularTexture(), 3},
+                                        {m_gameObject.getRoughnessTexture(), 4}
                                     }, 
                                     0}),
         };
@@ -242,7 +242,7 @@ void HybridRenderPipeline::_initPasses() {
         tga::Shader vs =
             tga::loadShader(HYBRID_SHADER_PATH("full_screen_triangle_vert.spv"), tga::ShaderType::vertex, m_tgai);
         tga::Shader fs =
-            tga::loadShader(HYBRID_SHADER_PATH("ray_march_test_frag.spv"), tga::ShaderType::fragment, m_tgai);
+            tga::loadShader(HYBRID_SHADER_PATH("ray_march_frag.spv"), tga::ShaderType::fragment, m_tgai);
 
         // input layout (TODO: reuse)
         tga::InputLayout inputLayout({{{
@@ -293,9 +293,9 @@ void HybridRenderPipeline::_initPasses() {
                 },
                     //S2
                 {
-                    {tga::BindingType::storageImage},  // B0: Test texture
-                    {tga::BindingType::accelerationStructure}, //B1: Acceleration structure
-                    {tga::BindingType::uniformBuffer}, //B2: model transform
+                    {tga::BindingType::storageImage},           //B0: Test texture
+                    {tga::BindingType::accelerationStructure},  //B1: Acceleration structure
+                    {tga::BindingType::uniformBuffer},          //B2: model transform
                 },
             }  
         );
@@ -322,7 +322,7 @@ void HybridRenderPipeline::_initPasses() {
                                    {
                                        {m_testTexture, 0},
                                        {m_tlas,        1},
-                                       {m_modelBuffer, 2},
+                                       {m_modelBuffer, 2}, //TODO: Send inverse transform
                                    },
                                    2})
             };
@@ -352,8 +352,13 @@ void HybridRenderPipeline::_initPasses() {
             },
             {
                 // S2
-                tga::BindingType::storageImage      // B0: specular reflection map
-            }
+                {tga::BindingType::storageImage},           // B0: specular reflection map
+                {tga::BindingType::accelerationStructure},  // B1: tlas
+                {tga::BindingType::storageBuffer},          // B2: vertex buffer
+                {tga::BindingType::storageBuffer},          // B3: index buffer
+                {tga::BindingType::uniformBuffer},          // B4: model transform
+                {tga::BindingType::sampler},                // B5: albedo
+            }   
         });
 
         // pass
@@ -378,6 +383,13 @@ void HybridRenderPipeline::_initPasses() {
             m_tgai.createInputSet({m_specularReflectionPass,
                                    {
                                        {m_specularReflectionImgPyramid[0], 0},
+                                       {m_tlas, 1},
+                                       {m_vertexBuffer, 2},
+                                       {m_indexBuffer, 3},
+                                       {m_modelBuffer, 4},
+                                       {m_gameObject.getDiffuseTexture(), 5}
+                                       //{m_gameObject.getMetalness(), 6},
+                                       //{m_gameObject.getRoughness(), 7},
                                    },
                                    2}),
         };
@@ -650,8 +662,6 @@ void HybridRenderPipeline::_updateUniformData(const Camera& camera) {
 }
 
 void HybridRenderPipeline::_updateModelData() {
-    //glm::mat4 newModelMatrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0.5f)) *
-    //                        glm::scale(glm::mat4(1), glm::vec3(0.005f));  // to change with model controller
     m_modelData->model = m_gameObject.getModelMatrix();          // update model matrix in the scene
 }
 

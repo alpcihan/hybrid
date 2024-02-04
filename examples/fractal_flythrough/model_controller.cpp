@@ -1,20 +1,15 @@
-#include "hybrid/core/application.hpp"
-#include "hybrid/hybrid_shared.hpp"
-#include "hybrid/renderer/model_controller.hpp"
-
-namespace hybrid {
+#include "model_controller.hpp"
 
 const glm::vec3 ModelController::WORLD_UP_VECTOR(0, 1, 0);
 const glm::vec3 ModelController::WORLD_FORWARD_VECTOR(0, 0, -1);
 const glm::vec3 ModelController::WORLD_RIGHT_VECTOR(-1, 0, 0);
 
-ModelController::ModelController(GameObject& gameObject)
-    : m_gameObject(gameObject), m_yaw(0), m_pitch(0), m_position(0, 0, 0.5f) {
-    }
+ModelController::ModelController(std::shared_ptr<hybrid::GameObject> gameObject)
+    : m_gameObject(gameObject), m_yaw(0), m_pitch(0), m_position(0, 0, 0.5f) {}
 
 void ModelController::update(float deltaTime) {
-    auto& tgai = Application::get().getInterface();
-    auto window = Application::get().getWindow();
+    auto& tgai = hybrid::Application::get().getInterface();
+    auto window = hybrid::Application::get().getWindow();
 
     float moveSpeed = speed;
 
@@ -39,10 +34,13 @@ void ModelController::update(float deltaTime) {
     if (tgai.keyDown(window, tga::Key::Shift_Left)) m_position += WORLD_UP_VECTOR * deltaTime * moveSpeed;
     if (tgai.keyDown(window, tga::Key::Space)) m_position -= WORLD_UP_VECTOR * deltaTime * moveSpeed;
 
-    m_gameObject.m_model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
-                           glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(1, 0, 0)) *
-                           glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 0, 1)) *
-                           glm::scale(glm::mat4(1), glm::vec3(0.015f));
-}
+    m_lookDir = glm::normalize(m_lookDir);
+    m_upDir = glm::normalize(m_upDir);
 
-}  // namespace hybrid
+    const auto& model = glm::translate(glm::mat4(1), m_position) * glm::mat4(rot) *
+                        glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(1, 0, 0)) *
+                        glm::rotate(glm::mat4(1), glm::radians(180.0f), glm::vec3(0, 0, 1)) *
+                        glm::scale(glm::mat4(1), glm::vec3(0.015f));
+    
+    m_gameObject->setModelMatrix(model);
+}

@@ -1,4 +1,4 @@
-#include "hybrid/renderer/game_object.hpp"
+#include "hybrid/core/game_object.hpp"
 #include "hybrid/core/application.hpp"
 
 namespace hybrid {
@@ -12,14 +12,20 @@ tga::VertexLayout Vertex::layout() {
             }};
 }
 
-GameObject::GameObject(const std::string& objPath, const std::string& diffTexPath) {
+GameObject::GameObject(const std::string& objPath, const std::string& diffTexPath, const std::string& specularTexPath, const std::string& roughnessTexPath) {
     tga::Obj object = tga::loadObj(objPath);
+    
     // convert tga::Vertex to hybrid::Vertex
-    for (auto v : object.vertexBuffer) {
-        m_vertexList.push_back(hybrid::Vertex(v.position, v.normal, v.uv));
+    m_vertexList.reserve(object.vertexBuffer.size());
+    for (const auto& v : object.vertexBuffer) {
+        m_vertexList.emplace_back(v.position, v.normal, v.uv);
     }
+
     m_indexList = object.indexBuffer;
     m_diffuseColorTex = tga::loadTexture(diffTexPath, tga::Format::r8g8b8a8_srgb, tga::SamplerMode::linear, Application::get().getInterface());
+    m_specularTex = tga::loadTexture(specularTexPath, tga::Format::r32_sfloat, tga::SamplerMode::linear, Application::get().getInterface());
+    m_roughnessTex = tga::loadTexture(roughnessTexPath, tga::Format::r32_sfloat, tga::SamplerMode::linear, Application::get().getInterface());
+
 }
 
 const tga::ext::TransformMatrix GameObject::getExtTransform() { 

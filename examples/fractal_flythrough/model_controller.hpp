@@ -1,12 +1,10 @@
 #pragma once
 
-#include "hybrid/renderer/game_object.hpp"
-
-namespace hybrid {
+#include "hybrid/hybrid.hpp"
 
 class ModelController {
 public:
-    ModelController(GameObject& gameObject);
+    ModelController(std::shared_ptr<hybrid::GameObject> gameObject);
     void update(float deltaTime);
     const glm::vec3 getPosition() const { return m_position; };
     const glm::vec3 getWorldUp() const { return WORLD_UP_VECTOR; };
@@ -16,11 +14,11 @@ public:
     const glm::vec3 getUpDir() const { return m_upDir; };
 
 public:
-    float speed = 3;
-    float turnSpeed = 90;
+    float speed = 2;
+    float turnSpeed = 45;
 
 private:
-    GameObject& m_gameObject;
+    std::shared_ptr<hybrid::GameObject> m_gameObject;
 
     float m_yaw;
     float m_pitch;
@@ -31,5 +29,3 @@ private:
     static const glm::vec3 WORLD_FORWARD_VECTOR;
     static const glm::vec3 WORLD_RIGHT_VECTOR;
 };
-
-}  // namespace hybrid

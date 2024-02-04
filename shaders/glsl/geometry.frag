@@ -16,6 +16,9 @@ layout(location = 0) in FragData {
 } frag;
 
 layout(set = 0, binding = 2) uniform sampler2D colorTex;
+layout(set = 0, binding = 3) uniform sampler2D metalicTex;
+layout(set = 0, binding = 4) uniform sampler2D roughnessTex;
+
 //--------------------------------------------------------------------------------------
 // outputs
 //--------------------------------------------------------------------------------------
@@ -26,12 +29,12 @@ HYBRID_CORE_GBUFFER_TARGET
 //--------------------------------------------------------------------------------------
 void main() {
     // material
-    const vec3  albedo      = vec3(0.8);
-    const float roughness   = 0.9;
-    const float metallic    = 0.2;
+    const vec3 albedo      = texture(colorTex, frag.uv).rgb;
+    const float metallic   = texture(metalicTex, frag.uv).r;
+    const float roughness  = texture(roughnessTex, frag.uv).r; 
 
     // output
-    gbuffer0        = vec4(texture(colorTex, frag.uv).rgb, roughness);
+    gbuffer0        = vec4(albedo, roughness);
     gbuffer1        = vec4(frag.positionWorld,metallic);
     gbuffer2        = vec4(frag.normalWorld, HYBRID_OBJECT_FLAG);
 }

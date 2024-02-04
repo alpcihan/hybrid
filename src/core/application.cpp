@@ -2,55 +2,48 @@
 
 #include "hybrid/core/time.hpp"
 #include "hybrid/core/timer.hpp"
-#include "hybrid/renderer/hybrid_render_pipeline.hpp"
-#include "hybrid/renderer/perspective_camera.hpp"
 
 namespace hybrid {
 
 Application *Application::s_instance = nullptr;
 
-Application::Application() : m_tgai() {
-    // instance
-    s_instance = this;
+Application& Application::get() {
+    if(s_instance == nullptr) {
+        s_instance = new Application();
+    }
 
-    // window
-    m_screenResolution = std::pair<uint32_t, uint32_t>(640 * 2, 360 * 2);
-    m_window =
-        std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
-
-    // scene
-    m_gameObject = std::make_unique<GameObject>(HYBRID_ASSET_PATH("FA59AMako/FA59AMako.obj"),
-                                                HYBRID_ASSET_PATH("FA59AMako/FA59AMako_BaseColor.png"));
-  
-    m_modelController = std::make_unique<ModelController>(*m_gameObject);
-
-    // camera
-    m_camera = std::make_unique<PerspectiveCamera>(30, float(m_screenResolution.first) / m_screenResolution.second);
-    m_cameraController = std::make_unique<CameraController>(*m_camera, *m_modelController);
+    return *s_instance; 
 }
 
-void Application::run() {
-    m_tgai.setWindowTitle(*m_window, "hybrid");
+Application::~Application() {
+    delete s_instance;
+    s_instance = nullptr;
+}
 
-    std::unique_ptr<HybridRenderPipeline> renderPipeline =
-        std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject);
+void Application::init(const std::string& name, uint32_t width, uint32_t height) {
+    // window
+    m_screenResolution = std::pair<uint32_t, uint32_t>(width, height);
+    m_window = std::make_unique<tga::Window>(m_tgai.createWindow({m_screenResolution.first, m_screenResolution.second}));
+    m_tgai.setWindowTitle(*m_window, name);
+}
 
+void Application::run(void (*onUpdate)()) {
+    std::unique_ptr<HybridRenderPipeline> renderPipeline = std::make_unique<HybridRenderPipeline>(*m_window, *m_gameObject, m_hdri);
+           
     Timer timer;
     while (!m_tgai.windowShouldClose(*m_window)) {
-        const float deltaTime = timer.elapsed();
         // update time
-        {
-            // std::cout << "FPS: " << 1 / deltaTime << "\n";
-            Time::_update(deltaTime);
-            timer.reset();
-        }
+        const float deltaTime = timer.elapsed();
+        timer.reset();  
+        Time::_update(deltaTime);
+        
+        // user callback
+        if(onUpdate) onUpdate();
 
-        m_modelController->update(deltaTime);
-        m_cameraController->update();
         renderPipeline->render(*m_camera);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
+
+Application::Application() : m_tgai() {}
 
 }  // namespace hybrid

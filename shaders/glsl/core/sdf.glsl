@@ -2,47 +2,58 @@
 #define HYBRID_CORE_SDF
 
 //--------------------------------------------------------------------------------------
-// signed distance functions
+// includes
 //--------------------------------------------------------------------------------------
-// https://iquilezles.org/articles/distfunctions/
-float sdSphere(in vec3 p, float r) {
-    return length(p) - r;
+#include "custom_sdf.glsl"
+
+//--------------------------------------------------------------------------------------
+// sdf shared
+//--------------------------------------------------------------------------------------
+// https://iquilezles.org/articles/normalsSDF
+vec3 sdf_normal(in vec3 p) {
+    vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
+    return normalize( e.xyy*sdf_map(p+e.xyy).x + 
+					  e.yyx*sdf_map(p+e.yyx).x + 
+					  e.yxy*sdf_map(p+e.yxy).x + 
+					  e.xxx*sdf_map(p+e.xxx).x );  
 }
 
-// https://iquilezles.org/articles/distfunctions/
-float sdBox(in vec3 p, in vec3 b) {
-    vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+// https://iquilezles.org/articles/rmshadows/
+float sdf_softShadow( in vec3 ro, in vec3 rd, float mint, float maxt, float w )
+{
+    float res = 1.0;
+    float t = mint;
+    for( int i=0; i<RAY_MARCH_MAX_ITERATION && t<maxt; i++ )
+    {
+        float h = sdf_map(ro + t*rd).x;
+        res = min( res, h/(w*t) );
+        t += clamp(h, 0.005, 0.50);
+        if( res<-1.0 || t>maxt ) break;
+    }
+    res = max(res,-1.0);
+    return smoothstep( -1.0 , 1.0, res );
 }
 
-// https://iquilezles.org/articles/distfunctions/
-float sdRoundBox(in vec3 p, in vec3 b, float r) {
-  vec3 q = abs(p) - b;
-  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
-}
+float sdf_rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 position, out hybrid_PBRMaterial mat) { 
+    float depth = near;
+    for (int i = 0; i < RAY_MARCH_MAX_ITERATION && depth < far; i++) {
+        vec3 p = origin + dir * depth;
+        
+        vec2 res = sdf_map(p);
 
-float sdZPlane(in vec3 p, in float y) {
-    return p.y - y;
-}
-// https://iquilezles.org/articles/menger/
-float sdMengerSponge( in vec3 p ) {
-    float d = sdBox(p,vec3(1.0));
-    
-    float s = 1.0;
-    for( int m=0; m<4; m++ ){
-        vec3 a = mod( (p - vec3(m+1, m+1, m+1)) *s, 2.0 )-1.0;
-        s *= 3.0;
-        vec3 r = abs(2.0 - 3.0*abs(a));
+        const vec3 pT = origin + dir * (depth+res.x);
+        if(pT.y > 1.99) return far;
 
-        float da = max(r.x,r.y);
-        float db = max(r.y,r.z);
-        float dc = max(r.z,r.x);
-        float c = (min(da,min(db,dc))-1.0)/s;
+        if (res.x < RAY_MARCH_HIT_DISTANCE) {
+            position       = p; 
+            sdf_material(p, mat);
+            return depth;
+        }
 
-        d = max(d,c);
+        depth += res.x;
     }
 
-    return d;
+    return far;
 }
 
 #endif
