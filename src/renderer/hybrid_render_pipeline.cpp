@@ -203,7 +203,7 @@ void HybridRenderPipeline::_initPasses() {
             // S0
             tga::BindingType::uniformBuffer,  // B0: uniform buffer
             tga::BindingType::uniformBuffer,  // B1: model buffer
-            tga::BindingType::sampler,         // B2: diffTex buffer
+            tga::BindingType::sampler,        // B2: diffTex buffer
             tga::BindingType::sampler,        // B3: metalness 
             tga::BindingType::sampler,        // B4: roughness 
         }}});
@@ -322,7 +322,7 @@ void HybridRenderPipeline::_initPasses() {
                                    {
                                        {m_testTexture, 0},
                                        {m_tlas,        1},
-                                       {m_modelBuffer, 2},
+                                       {m_modelBuffer, 2}, //TODO: Send inverse transform
                                    },
                                    2})
             };
@@ -352,12 +352,12 @@ void HybridRenderPipeline::_initPasses() {
             },
             {
                 // S2
-                {tga::BindingType::storageImage},      // B0: specular reflection map
-                {tga::BindingType::accelerationStructure}, //B1: tlas
-                {tga::BindingType::storageBuffer},  //B2: vertex buffer
-                {tga::BindingType::storageBuffer}, //B3: index buffer
-                {tga::BindingType::uniformBuffer}, //B4: model transform
-                {tga::BindingType::sampler},        //B5: albedo
+                {tga::BindingType::storageImage},           // B0: specular reflection map
+                {tga::BindingType::accelerationStructure},  // B1: tlas
+                {tga::BindingType::storageBuffer},          // B2: vertex buffer
+                {tga::BindingType::storageBuffer},          // B3: index buffer
+                {tga::BindingType::uniformBuffer},          // B4: model transform
+                {tga::BindingType::sampler},                // B5: albedo
             }   
         });
 

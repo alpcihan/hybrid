@@ -99,6 +99,7 @@ void main() {
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 
+    color= vec3(shadowVal);
     // output  
     fragOut = vec4(color, gb2.w);  
 }
