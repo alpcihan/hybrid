@@ -18,6 +18,7 @@ vec2 minx(vec2 v1, vec2 v2) {
 	return (v1.x<v2.x) ? v1 : v2;
 }
 
+//https://www.shadertoy.com/view/4ds3zn
 vec2 sdf_map(vec3 p) {
     float scale = 1.0;
     
