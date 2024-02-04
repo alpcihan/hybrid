@@ -6,15 +6,14 @@
 //--------------------------------------------------------------------------------------
 // includes
 //--------------------------------------------------------------------------------------
-#include "core/core.glsl" //S0
+#include "core/core.glsl" // S0
 #include "core/ray.glsl"
 #include "core/sdf.glsl"
 
 //--------------------------------------------------------------------------------------
 // inputs
 //--------------------------------------------------------------------------------------
-
-HYBRID_CORE_GBUFFER_SAMPLER //S1
+HYBRID_CORE_GBUFFER_SAMPLER // S1
 
 layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
     float shadowMap[];
@@ -22,7 +21,7 @@ layout(set = 1, binding = 3 ) writeonly buffer shadowStorage{
 
 layout(set = 2, binding = 0, rgba16f) uniform image2D _testShadowMap;
 layout(set = 2, binding = 1) uniform accelerationStructureEXT _tlas;
-layout(set = 2, binding = 2) uniform modelData{
+layout(set = 2, binding = 2) uniform modelData {
     mat4 _transform;
 };
 
@@ -35,10 +34,8 @@ layout(local_size_y = 32) in;
 //--------------------------------------------------------------------------------------
 // programm
 //--------------------------------------------------------------------------------------
-
-//return hit distance if no hit returns -1
-float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
-{
+// return hit distance if no hit returns -1
+float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 ) {
     vec3 v1v0 = v1 - v0;
     vec3 v2v0 = v2 - v0;
     vec3 rov0 = r.origin - v0;
@@ -53,9 +50,7 @@ float triIntersect(in Ray r,in vec3 v0,in vec3 v1,in vec3 v2 )
     return t;
 }
 
-
-float intersectTLAS(in Ray r, float d_light){
-
+float intersectTLAS(in Ray r, float d_light) {
     rayQueryEXT rayQuery;
 
     rayQueryInitializeEXT(
@@ -64,7 +59,7 @@ float intersectTLAS(in Ray r, float d_light){
         gl_RayFlagsTerminateOnFirstHitEXT,
         0xFF,
         r.origin,
-        0.1,               //TODO: Standardize the ray bias (For now it is given the same bias as sdf bias)
+        0.1,               // TODO: Standardize the ray bias (For now it is given the same bias as sdf bias)
         r.direction,
         d_light
     );
@@ -82,9 +77,8 @@ float intersectTLAS(in Ray r, float d_light){
     return t;
 }
 
-bool intersectMesh(in Ray r,float d_light)
-{
-    //triangle intersection
+bool intersectMesh(in Ray r,float d_light) {
+    // triangle intersection
     mat4 invTransform = inverse(_transform);
     Ray ray = transformRay(r,invTransform);
 
@@ -94,28 +88,24 @@ bool intersectMesh(in Ray r,float d_light)
     return true;
 }
 
-float intersectSdf(in Ray r, float d_light)
-{
-    return sdf_softShadow(r.origin, r.direction, 0.1 , d_light, 0.2); //TODO: Decide the w value wrt. the light features
+float intersectSdf(in Ray r, float d_light) {
+    return sdf_softShadow(r.origin, r.direction, 0.1 , d_light, 0.2); // TODO: Decide the w value wrt. the light features
 }
 
-//returns shadow scaler for the given pixel located in ray origin
-float hitWorld(in Ray r, float d_light)
-{
-    float res = intersectSdf(r,d_light); //soft shadows for sdf
-    if(intersectMesh(r,d_light)) return min(res, 0.3); //TODO: Add mesh distance field
+// returns shadow scaler for the given pixel located in ray origin
+float hitWorld(in Ray r, float d_light) {
+    float res = intersectSdf(r,d_light); // soft shadows for sdf
+    if(intersectMesh(r,d_light)) return min(res, 0.3); // TODO: Add mesh distance field
     return res;
 }
 
 void main() {
-    
     ivec2 texCoords = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w); //get pixel width and height
-    uint idx = texCoords.y * bounds.x + texCoords.x; //used for shadow map
+    ivec2 bounds = ivec2( _projectionParams.z, _projectionParams.w); // get pixel width and height
+    uint idx = texCoords.y * bounds.x + texCoords.x; // used for shadow map
 
     if(any(greaterThanEqual(texCoords,bounds))) return;
    
-    
     vec2 uv = vec2(texCoords)/vec2(bounds)+ (0.5*calculateUvSize());
 
     const vec4 gb1 = texture(gbuffer1, uv);
@@ -125,7 +115,6 @@ void main() {
     float res;
     if(gb2.w == HYBRID_BACKGROUND_FLAG){
         res = 1.0;
-        //return;
     }
     else{
         const vec3 worldPos = gb1.xyz;
@@ -143,7 +132,7 @@ void main() {
             float t_light = distance(_lights[i].position , rayOrigin);
     
             Ray ray = createRay(rayOrigin, rayDirection);
-            res = hitWorld(ray, t_light);
+            res = pow(hitWorld(ray, t_light), 2);
         }
         shadowMap[idx] = res;
     }

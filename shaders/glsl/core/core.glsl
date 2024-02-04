@@ -54,9 +54,7 @@ layout(set = 1, binding = 4) uniform sampler2D _environmentMap;
 // TODO: this will be replaced with light buffer
 #define HYBRID_LIGHT_COUNT 1
 const hybrid_PointLight _lights[HYBRID_LIGHT_COUNT] = {
-   // {vec3(0.5), vec3(   0,    1,      1.5),         1},
-    //{vec3(0.5), vec3(   1,    0.1,    1.5),         1},
-    {vec3(1), vec3(  0,   20,    0),         10},
+    {vec3(1.5), vec3(1,   0.75,    1),         1.5},
 };
 
 //--------------------------------------------------------------------------------------
@@ -85,7 +83,7 @@ float hybrid_linearToZDepth(float z) {
 vec4 hybrid_sampleEnvironmentMap(vec3 dir) {
     const float PI = 3.14159265359;
     const vec2 uv = vec2(atan(dir.x, dir.z) / (2.0 * PI) + 0.5, asin(-dir.y) / PI + 0.5);
-    return texture(_environmentMap, uv);
+    return texture(_environmentMap, uv) * vec4(vec3(3),1);
 }
 
 vec2 calculateUvSize(){

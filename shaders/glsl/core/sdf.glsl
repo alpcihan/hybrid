@@ -1,8 +1,14 @@
 #ifndef HYBRID_CORE_SDF
 #define HYBRID_CORE_SDF
 
-#include "ray_march_test.glsl"
+//--------------------------------------------------------------------------------------
+// includes
+//--------------------------------------------------------------------------------------
+#include "custom_sdf.glsl"
 
+//--------------------------------------------------------------------------------------
+// sdf shared
+//--------------------------------------------------------------------------------------
 // https://iquilezles.org/articles/normalsSDF
 vec3 sdf_normal(in vec3 p) {
     vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
@@ -34,6 +40,10 @@ float sdf_rayCast(in vec3 origin, in vec3 dir, float near, float far, out vec3 p
         vec3 p = origin + dir * depth;
         
         vec2 res = sdf_map(p);
+
+        const vec3 pT = origin + dir * (depth+res.x);
+        if(pT.y > 1.99) return far;
+
         if (res.x < RAY_MARCH_HIT_DISTANCE) {
             position       = p; 
             sdf_material(p, mat);

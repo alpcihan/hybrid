@@ -14,8 +14,8 @@ public:
     const glm::vec3 getUpDir() const { return m_upDir; };
 
 public:
-    float speed = 3;
-    float turnSpeed = 90;
+    float speed = 2;
+    float turnSpeed = 45;
 
 private:
     std::shared_ptr<hybrid::GameObject> m_gameObject;

@@ -61,8 +61,9 @@ void main() {
     float shadowVal = shadowMap[shadowIdx];
 
     vec3 color = vec3(0.0);
-    const vec3 ambient = vec3(0.1);
-    color += ambient * albedo * ao;
+
+    // direct lighting
+    vec3 directLo = vec3(0.0);
 	for(int i = 0; i < HYBRID_LIGHT_COUNT; ++i){
         vec3 Lo = calculatePBRLoFromSceneLights(
                 albedo,
@@ -73,8 +74,9 @@ void main() {
                 viewPos,
                 i);
 
-        color += Lo * shadowVal;
+        directLo += Lo * shadowVal;
     }
+    color += directLo;
 
     // sample reflection map
     const vec4 inReflect = texture(_specularReflectionPyramid[0], uv);
@@ -99,7 +101,6 @@ void main() {
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 
-    color= vec3(shadowVal);
     // output  
     fragOut = vec4(color, gb2.w);  
 }
