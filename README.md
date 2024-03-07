@@ -4,8 +4,7 @@
 
 The main motivation of the project is to render triangular geometry and Signed Distance Functions (SDFs) with a unified lighting system, supported by hardware-accelerated ray tracing.
 
-<img width="960" alt="hybrid_png" src="https://github.com/alpcihan/hybrid/assets/37274614/b6f1394d-8eef-4bfe-9c03-e59fa7a6423f">
-
+![hybrid](https://github.com/alpcihan/hybrid/assets/37274614/7ca57586-db50-403f-b7db-1b28ac30b158)
 *Captured from the [fractal_flythrough](./examples/fractal_flythrough) example.*
 
 *[Apollonian](https://www.shadertoy.com/view/4ds3zn) fractal by [iq](https://www.shadertoy.com/user/iq), [FA-59A Mako](https://www.turbosquid.com/3d-models/fa-59a-mako-1078468) spaceship model by [hefturush](https://www.turbosquid.com/Search/Artists/hefturush) and [Village Cloudy Sky Dome](https://hdri-haven.com/hdri/village-cloudy-sky-dome) HDRI from [hdri-haven](https://hdri-haven.com).*
